@@ -1,5 +1,17 @@
 {
   "version": 1,
-  "generatedAt": "2026-05-24T07:34:10.697Z",
-  "subjects": {}
+  "generatedAt": "2026-05-24T07:35:15.368Z",
+  "subjects": {
+    "PE-III": {
+      "notes": [
+        {
+          "id": "PE-III-UNIT 2 HAD.pdf",
+          "unit": 2,
+          "title": "HAD",
+          "file": "library/PE-III/UNIT 2 HAD.pdf"
+        }
+      ],
+      "papers": []
+    }
+  }
 }
