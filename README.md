@@ -42,9 +42,11 @@ biomed-hub/
 └── assets/
 ```
 
-## Adding PDFs (drag-and-drop, no JSON ever)
+## Adding PDFs (zero JSON, zero git)
 
-Once the site is on GitHub, a built-in GitHub Action rebuilds `library/manifest.json` **every time you push a PDF**. You don't edit JSON at all — just drag files into folders named with the course code.
+**Easiest:** open the live site → `#/admin` → paste a GitHub Personal Access Token once → drag PDFs into the dropzone. They commit straight to the repo; the auto-manifest Action picks them up within ~30 seconds. Full instructions in [DEPLOY.md](./DEPLOY.md).
+
+**Or:** drag PDFs into folders directly on the GitHub web UI — the same Action handles them.
 
 ```
 library/

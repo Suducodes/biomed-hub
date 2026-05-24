@@ -1,356 +1,334 @@
-import { h, mount, icon } from '../ui.js';
+import { h, mount, icon, modal } from '../ui.js';
 import { SUBJECTS, SEM_LABEL, CATEGORY_META } from '../data.js';
 import { store, getManifest, loadManifest, toast, todayISO } from '../storage.js';
+import {
+  getSettings, setSettings, clearSettings, autoDetectRepo,
+  validateToken, putFile, noteFilename, paperFilename, syllabusFilename, slugify,
+} from '../github.js';
 
-// Admin panel — composes JSON snippets for `library/manifest.json`.
-// Three modes:
-//   1. Add note            — one PDF, with optional Unit #
-//   2. Add past paper      — one PDF, with year / type / university
-//   3. Set syllabus image  — one image URL per subject
-//   4. Bulk add notes      — paste many units at once
+// Admin panel — drag-and-drop direct upload to the repo.
 //
-// Workflow:
-//   1. Upload the PDFs to your storage (GitHub repo or Cloudflare R2 etc.)
-//   2. Compose entries here → live in localStorage as DRAFTS and appear
-//      (with a "draft (local)" badge) in the subject pages so you can preview.
-//   3. Click "Export merged manifest.json" → drop the file into the repo.
-//   4. Click "Clear drafts" once committed.
+// One-time setup: the admin pastes a GitHub Personal Access Token (PAT) with
+// "Contents: read & write" on this repo. The token is stored in localStorage
+// and only sent to api.github.com. After that, uploads are one-click.
 
 export async function renderAdmin() {
   await loadManifest();
-  const cloud = getManifest();
-  const draft = store.draftLibrary();
+  const settings = { ...(autoDetectRepo() || {}), ...getSettings() };
+  const configured = !!(settings.token && settings.owner && settings.repo);
 
   const head = h('div', { class: 'page-head' },
     h('div', {},
-      h('h1', { html: '<span class="accent">Admin</span> · upload library' }),
-      h('p', {}, 'Add notes, past papers and syllabus images to the cloud library. Compose entries here, preview them in the subject pages, then export and commit.'),
+      h('h1', { html: '<span class="accent">Admin</span> · upload' }),
+      h('p', {}, 'Drag and drop PDFs. They are committed to the GitHub repo directly; the auto-manifest Action picks them up within ~30 seconds. Zero JSON editing.'),
     ),
   );
 
-  const counts = countItems(cloud, draft);
-  const stats = h('div', { class: 'grid grid--4', style: { marginBottom: 18 } },
-    miniStat('📘', counts.cloudNotes,  'Cloud notes'),
-    miniStat('📄', counts.cloudPapers, 'Cloud papers'),
-    miniStat('🖼️', counts.cloudSyll,   'Syllabus images'),
-    miniStat('📝', counts.draftItems,  'Pending drafts'),
+  // -------- Settings panel --------
+  const settingsCard = renderSettingsCard(settings, () => renderAdmin());
+
+  // -------- Upload panel --------
+  const uploadCard = configured
+    ? renderUploadCard(settings)
+    : h('div', { class: 'card', style: { opacity: 0.6 } },
+        h('h3', { style: { margin: '0 0 6px', fontFamily: 'Space Grotesk' } }, 'Upload disabled'),
+        h('p', { style: { color: 'var(--muted)', margin: 0 } }, 'Configure your GitHub token above to enable direct uploads.'),
+      );
+
+  // -------- Scaling explainer --------
+  const explainer = h('div', { class: 'card', style: { marginTop: 16, background: 'rgba(34,211,238,0.05)' } },
+    h('h4', { style: { margin: '0 0 6px', fontFamily: 'Space Grotesk' } }, 'How this scales'),
+    h('ul', { style: { color: 'var(--muted)', fontSize: 13.5, margin: 0, paddingLeft: 18 } },
+      h('li', {}, h('b', {}, 'Concurrent visitors:'), ' GitHub Pages serves from a global CDN. Thousands of simultaneous students = no problem.'),
+      h('li', {}, h('b', {}, 'Bandwidth:'), ' Soft cap is ~100 GB / month. A class of 200 students downloading 100 MB each = 20 GB. Well within limits.'),
+      h('li', {}, h('b', {}, 'When you upload here,'), ' it triggers one site rebuild (cap: 10/hour). For bulk uploads we batch — all files in one commit.'),
+      h('li', {}, h('b', {}, 'Student notes:'), ' Each student writes their own private notes in the “My Notes” tab on any subject. They live in that student\'s browser only. Nothing to crash, nothing to moderate.'),
+    ),
   );
 
-  // Shared subject picker (used by all forms)
-  const subjSel = makeSubjectSelect('U21BM301');
+  mount('#view', head, settingsCard, uploadCard, explainer);
+}
 
-  // Mode tabs
-  const modeTabs = h('div', { class: 'tabs', style: { marginBottom: 16 } });
-  const modeBody = h('div', {});
-  let mode = 'note';
+// ===========================================================
+// Settings panel
+// ===========================================================
+function renderSettingsCard(initial, onSaved) {
+  const detected = autoDetectRepo();
+  const ownerI  = h('input', { class: 'input', placeholder: 'github-username', value: initial.owner || '' });
+  const repoI   = h('input', { class: 'input', placeholder: 'repo-name',       value: initial.repo  || '' });
+  const branchI = h('input', { class: 'input', placeholder: 'main',            value: initial.branch || 'main' });
+  const tokenI  = h('input', { class: 'input', type: 'password', placeholder: 'ghp_…  or  github_pat_…', value: initial.token || '' });
+  const status  = h('div', { style: { marginTop: 10, fontSize: 13 } });
 
-  function setMode(m) {
-    mode = m;
-    [...modeTabs.children].forEach(c => c.classList.toggle('is-active', c.dataset.mode === m));
-    modeBody.innerHTML = '';
-    if (m === 'note')     modeBody.appendChild(noteForm(subjSel));
-    if (m === 'paper')    modeBody.appendChild(paperForm(subjSel));
-    if (m === 'syllabus') modeBody.appendChild(syllabusForm(subjSel));
-    if (m === 'bulk')     modeBody.appendChild(bulkForm(subjSel));
+  async function save() {
+    const s = {
+      owner:  ownerI.value.trim(),
+      repo:   repoI.value.trim(),
+      branch: branchI.value.trim() || 'main',
+      token:  tokenI.value.trim(),
+    };
+    if (!s.owner || !s.repo || !s.token) { toast('Owner, repo and token are required', 'err'); return; }
+    status.textContent = 'Validating token…';
+    status.style.color = 'var(--muted)';
+    try {
+      const user = await validateToken(s);
+      setSettings(s);
+      status.innerHTML = `<span style="color:var(--emerald)">✓ Saved. Authenticated as <b>${user.login}</b></span>`;
+      toast('GitHub configured', 'ok');
+      setTimeout(onSaved, 400);
+    } catch (e) {
+      status.innerHTML = `<span style="color:var(--rose)">✗ ${e.message}</span>`;
+    }
   }
-  [
-    ['note',     'Add note'],
-    ['paper',    'Add paper'],
-    ['syllabus', 'Set syllabus image'],
-    ['bulk',     'Bulk add units'],
-  ].forEach(([k, label]) => {
-    const t = h('div', { class: 'tab', dataset: { mode: k }, onclick: () => setMode(k) }, label);
-    modeTabs.appendChild(t);
-  });
 
-  // Pending drafts column
-  const draftList = h('div', {});
-  function renderDrafts() {
-    draftList.innerHTML = '';
-    const d = store.draftLibrary();
-    const ids = Object.keys(d.subjects || {});
-    if (!ids.length) {
-      draftList.appendChild(h('div', { class: 'empty' }, icon('notes'), h('h4', {}, 'No drafts yet'), h('p', {}, 'Add an entry on the left — it will appear here.')));
+  return h('div', { class: 'card', style: { marginBottom: 16 } },
+    h('div', { style: { display: 'flex', alignItems: 'center', marginBottom: 10 } },
+      h('h3', { style: { margin: 0, fontFamily: 'Space Grotesk', flex: 1 } }, 'GitHub connection'),
+      initial.token ? h('span', { class: 'chip chip--emerald' }, '✓ configured') : h('span', { class: 'chip chip--amber' }, 'not configured'),
+    ),
+    detected ? h('p', { style: { color: 'var(--muted)', fontSize: 12.5, margin: '0 0 12px' } },
+      `Auto-detected from URL: ${detected.owner}/${detected.repo} on branch ${detected.branch}.`) : null,
+    h('div', { class: 'field-row' },
+      h('div', { class: 'field' }, h('label', { class: 'label' }, 'Owner (username)'), ownerI),
+      h('div', { class: 'field' }, h('label', { class: 'label' }, 'Repo'), repoI),
+    ),
+    h('div', { class: 'field-row' },
+      h('div', { class: 'field' }, h('label', { class: 'label' }, 'Branch'), branchI),
+      h('div', { class: 'field' }, h('label', { class: 'label' }, 'Personal access token'), tokenI),
+    ),
+    h('p', { style: { color: 'var(--muted)', fontSize: 12, margin: '0 0 12px' } },
+      'Create at ',
+      h('a', { href: 'https://github.com/settings/personal-access-tokens/new', target: '_blank', rel: 'noopener', style: { color: 'var(--cyan)' } }, 'github.com → Fine-grained tokens'),
+      '. Required: ',
+      h('code', { style: { background: 'rgba(148,163,184,0.12)', padding: '1px 6px', borderRadius: 4 } }, 'Repository → Contents → Read and write'),
+      '. Token never leaves your browser.'),
+    h('div', { style: { display: 'flex', gap: 8 } },
+      h('button', { class: 'btn btn--primary', onclick: save }, icon('check'), 'Save & verify'),
+      initial.token ? h('button', { class: 'btn btn--danger', onclick: () => { if (confirm('Clear saved token?')) { clearSettings(); toast('Cleared'); onSaved(); } } }, 'Clear token') : null,
+    ),
+    status,
+  );
+}
+
+// ===========================================================
+// Upload panel — multi-file drag-drop, auto-naming, batch commit
+// ===========================================================
+function renderUploadCard(settings) {
+  // State held in closure
+  let kind = 'note';          // 'note' | 'paper' | 'syllabus'
+  let subjectId = 'U21BM301';
+  /** @type {{file:File, suggestedName:string, customName?:string, meta:object, status:string}[]} */
+  let queue = [];
+  let uploading = false;
+
+  // --- subject + kind controls ---
+  const subjSel = makeSubjectSelect(subjectId);
+  subjSel.addEventListener('change', () => { subjectId = subjSel.value; renderQueue(); });
+
+  const kindBtns = h('div', { class: 'kind-pills' });
+  const kindOptions = [
+    { v: 'note',     label: 'Notes (Units)', icon: 'notes' },
+    { v: 'paper',    label: 'Past papers',   icon: 'papers' },
+    { v: 'syllabus', label: 'Syllabus image',icon: 'subjects' },
+  ];
+  kindOptions.forEach(o => {
+    const b = h('button', { class: 'kind-pill' + (o.v === kind ? ' is-active' : ''), onclick: () => { kind = o.v; setKind(); } },
+      icon(o.icon), h('span', {}, o.label));
+    b.dataset.k = o.v;
+    kindBtns.appendChild(b);
+  });
+  function setKind() {
+    [...kindBtns.children].forEach(b => b.classList.toggle('is-active', b.dataset.k === kind));
+    queue = []; renderQueue();
+    extraFieldsMount.innerHTML = '';
+    extraFieldsMount.appendChild(extraFields());
+    dropHint.textContent = kind === 'syllabus'
+      ? 'Drop one image (JPG / PNG / WebP) here'
+      : 'Drop one or more PDFs here, or click to choose';
+    fileInput.accept = kind === 'syllabus' ? 'image/*' : 'application/pdf';
+    fileInput.multiple = kind !== 'syllabus';
+  }
+
+  // --- per-kind extra fields ---
+  const extraFieldsMount = h('div', {});
+  function extraFields() {
+    if (kind === 'paper') {
+      const yearI = h('input', { class: 'input', type: 'number', placeholder: '2024', value: new Date().getFullYear() });
+      const typeI = h('select', { class: 'select' }, ...['Regular','Supplementary','Internal','Model'].map(v => h('option', { value: v }, v)));
+      const uniI  = h('input', { class: 'input', placeholder: 'KPR Institute (optional)' });
+      const f = h('div', { class: 'field-row' },
+        h('div', { class: 'field' }, h('label', { class: 'label' }, 'Year'), yearI),
+        h('div', { class: 'field' }, h('label', { class: 'label' }, 'Type'), typeI),
+        h('div', { class: 'field' }, h('label', { class: 'label' }, 'University'), uniI),
+      );
+      f.dataset.kind = 'paper';
+      f._read = () => ({ year: +yearI.value || null, type: typeI.value, university: uniI.value.trim() });
+      return f;
+    }
+    // For notes we read unit & title per-file in the queue rows
+    if (kind === 'note') {
+      const startI = h('input', { class: 'input', type: 'number', placeholder: '1', value: 1, min: 1, max: 12 });
+      const f = h('div', { class: 'field-row' },
+        h('div', { class: 'field' }, h('label', { class: 'label' }, 'Starting unit # (auto-increments)'), startI),
+      );
+      f._read = () => ({ startUnit: +startI.value || 1 });
+      return f;
+    }
+    return h('div', {});
+  }
+
+  // --- drop zone ---
+  const fileInput = h('input', { type: 'file', accept: 'application/pdf', multiple: true, style: { display: 'none' },
+    onchange: (e) => { addFiles([...e.target.files]); fileInput.value = ''; } });
+  const dropHint = h('div', { class: 'drop-hint' }, 'Drop one or more PDFs here, or click to choose');
+  const dropzone = h('div', { class: 'dropzone',
+    onclick: () => fileInput.click(),
+    ondragover: (e) => { e.preventDefault(); dropzone.classList.add('is-over'); },
+    ondragleave: () => dropzone.classList.remove('is-over'),
+    ondrop: (e) => {
+      e.preventDefault(); dropzone.classList.remove('is-over');
+      addFiles([...e.dataTransfer.files]);
+    },
+  },
+    h('div', { class: 'dropzone__inner' },
+      h('div', { class: 'dropzone__icon' }, '⬆'),
+      dropHint,
+      h('div', { class: 'dropzone__hint' }, 'Filenames are auto-generated to match the library convention.'),
+    ),
+    fileInput,
+  );
+
+  // --- queue list ---
+  const queueList = h('div', { class: 'queue' });
+
+  function addFiles(files) {
+    if (kind === 'syllabus') files = files.slice(0, 1);
+    const meta = extraFieldsMount.firstChild?._read?.() || {};
+    let nextUnit = meta.startUnit || 1;
+    files.forEach(f => {
+      const item = { file: f, status: 'pending', meta: {} };
+      if (kind === 'note') {
+        const parsed = parseFromFilename(f.name);
+        item.meta = { unit: parsed.unit ?? nextUnit++, title: parsed.title };
+        item.suggestedName = noteFilename(item.meta.unit, item.meta.title);
+      } else if (kind === 'paper') {
+        item.meta = { ...meta };
+        item.suggestedName = paperFilename(meta.year, meta.type, meta.university);
+      } else {
+        item.suggestedName = syllabusFilename(f.name);
+      }
+      queue.push(item);
+    });
+    renderQueue();
+  }
+
+  function renderQueue() {
+    queueList.innerHTML = '';
+    if (queue.length === 0) {
+      queueList.appendChild(h('div', { style: { color: 'var(--muted)', fontSize: 13, padding: '12px 0', textAlign: 'center' } }, 'No files queued.'));
       return;
     }
-    ids.forEach(sid => {
-      const subj = SUBJECTS.find(x => x.id === sid);
-      const block = d.subjects[sid];
-      const items = [
-        ...(block.notes  || []).map(n => ({ ...n, kind: 'note' })),
-        ...(block.papers || []).map(p => ({ ...p, kind: 'paper' })),
-      ];
-      const card = h('div', { class: 'card', style: { marginBottom: 10 } },
-        h('div', { style: { display: 'flex', gap: 10, alignItems: 'center', marginBottom: 8, flexWrap: 'wrap' } },
-          h('span', { class: 'chip chip--cyan' }, sid),
-          h('div', { style: { fontWeight: 600, flex: 1 } }, subj?.name || sid),
-          block.syllabus ? h('span', { class: 'chip chip--violet' }, '🖼 syllabus set') : null,
+    queue.forEach((item, idx) => {
+      const subj = SUBJECTS.find(s => s.id === subjectId);
+      const targetPath = computePath(subjectId, kind, item.suggestedName);
+      const row = h('div', { class: 'queue-row' },
+        h('div', { class: 'queue-row__icon' }, kind === 'syllabus' ? '🖼' : (kind === 'paper' ? '📄' : '📘')),
+        h('div', { class: 'queue-row__body' },
+          kind === 'note'
+            ? h('div', { style: { display: 'flex', gap: 8 } },
+                h('input', { class: 'input', type: 'number', value: item.meta.unit, min: 1, max: 12, style: { width: 64 },
+                  oninput: (e) => { item.meta.unit = +e.target.value; item.suggestedName = noteFilename(item.meta.unit, item.meta.title); renderQueue(); } }),
+                h('input', { class: 'input', value: item.meta.title, placeholder: 'Title',
+                  oninput: (e) => { item.meta.title = e.target.value; item.suggestedName = noteFilename(item.meta.unit, item.meta.title); renderQueue(); } }),
+              )
+            : h('div', { class: 'queue-row__title' }, item.suggestedName),
+          h('div', { class: 'queue-row__path' }, '→ ', targetPath, '   (', (item.file.size / 1024).toFixed(0), ' KB)'),
         ),
-        block.syllabus ? h('div', { class: 'note-row', style: { background: 'rgba(167,139,250,0.06)' } },
-          h('div', {},
-            h('h4', {}, 'Syllabus image'),
-            h('div', { class: 'note-row__preview', style: { fontFamily: 'JetBrains Mono', color: 'var(--muted)' } }, block.syllabus),
-          ),
-          h('div', { class: 'note-row__right' },
-            h('button', { class: 'icon-btn', title: 'Remove syllabus draft', onclick: () => { delete block.syllabus; cleanup(d, sid); store.set('draftLibrary', d); toast('Removed'); renderAdmin(); } }, icon('trash')),
-          ),
-        ) : null,
-        ...items.map(it => h('div', { class: 'note-row' },
-          h('div', {},
-            h('h4', {}, it.title,
-              h('span', { class: 'chip chip--amber', style: { marginLeft: 8 } }, it.kind === 'paper' ? `paper · ${it.year || '—'}` : (it.unit != null && it.unit !== '' ? `unit ${it.unit}` : 'note')),
-            ),
-            h('div', { class: 'note-row__preview', style: { fontFamily: 'JetBrains Mono', color: 'var(--muted)' } }, it.file),
-          ),
-          h('div', { class: 'note-row__right' },
-            h('button', { class: 'icon-btn', title: 'Delete draft', onclick: () => removeDraft(sid, it) }, icon('trash')),
-          ),
-        )),
+        h('div', { class: 'queue-row__status' }, statusBadge(item.status)),
+        h('button', { class: 'icon-btn', title: 'Remove from queue', onclick: () => { queue.splice(idx, 1); renderQueue(); } }, icon('trash')),
       );
-      draftList.appendChild(card);
+      queueList.appendChild(row);
     });
   }
-  function cleanup(d, sid) {
-    const b = d.subjects[sid];
-    if (!b) return;
-    const empty = !b.syllabus && !(b.notes || []).length && !(b.papers || []).length;
-    if (empty) delete d.subjects[sid];
-  }
-  function removeDraft(sid, item) {
-    const d = store.draftLibrary();
-    const block = d.subjects[sid];
-    if (item.kind === 'note')  block.notes  = (block.notes  || []).filter(n => n.id !== item.id);
-    if (item.kind === 'paper') block.papers = (block.papers || []).filter(p => p.id !== item.id);
-    cleanup(d, sid);
-    store.set('draftLibrary', d);
-    toast('Removed from drafts'); renderAdmin();
-  }
 
-  function exportManifest() {
-    const merged = JSON.parse(JSON.stringify(getManifest() || { subjects: {} }));
-    merged.version = (merged.version || 0) + 1;
-    const d = store.draftLibrary();
-    Object.entries(d.subjects || {}).forEach(([sid, block]) => {
-      merged.subjects[sid] = merged.subjects[sid] || {};
-      const target = merged.subjects[sid];
-      if (block.syllabus) target.syllabus = block.syllabus;
-      target.notes  = [...(target.notes  || []), ...((block.notes  || []).map(({ draft, ...rest }) => rest))];
-      target.papers = [...(target.papers || []), ...((block.papers || []).map(({ draft, ...rest }) => rest))];
-    });
-    const blob = new Blob([JSON.stringify(merged, null, 2)], { type: 'application/json' });
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(blob);
-    a.download = 'manifest.json';
-    a.click();
-    toast('Downloaded manifest.json — commit it to library/');
-  }
+  // --- upload ---
+  const uploadBtn = h('button', { class: 'btn btn--primary', onclick: async () => {
+    if (uploading) return;
+    if (queue.length === 0) { toast('Nothing to upload', 'err'); return; }
+    uploading = true;
+    uploadBtn.disabled = true;
+    let ok = 0, fail = 0;
+    for (const item of queue.filter(q => q.status !== 'done')) {
+      item.status = 'uploading'; renderQueue();
+      try {
+        const path = computePath(subjectId, kind, item.suggestedName);
+        const msg = kind === 'syllabus'
+          ? `admin: upload syllabus for ${subjectId}`
+          : kind === 'paper'
+            ? `admin: upload ${item.meta.year} ${item.meta.type} paper for ${subjectId}`
+            : `admin: upload Unit ${item.meta.unit} note for ${subjectId}`;
+        await putFile(settings, path, item.file, msg);
+        item.status = 'done'; ok++;
+      } catch (e) {
+        item.status = 'error: ' + e.message; fail++;
+      }
+      renderQueue();
+    }
+    uploading = false;
+    uploadBtn.disabled = false;
+    toast(`Uploaded ${ok}${fail ? ` · ${fail} failed` : ''} · GitHub Action will rebuild the manifest in ~30s`);
+  } }, icon('plus'), 'Upload all to GitHub');
 
-  function clearDrafts() {
-    if (!confirm('Clear all drafts? Only do this AFTER you committed manifest.json.')) return;
-    store.set('draftLibrary', { subjects: {} });
-    toast('Drafts cleared'); renderAdmin();
-  }
-
-  const helpCard = h('div', { class: 'card', style: { marginTop: 14, background: 'rgba(34,211,238,0.05)' } },
-    h('h4', { style: { margin: '0 0 6px', fontFamily: 'Space Grotesk' } }, 'Once you are happy with the drafts'),
-    h('p', { style: { color: 'var(--muted)', margin: '0 0 12px', fontSize: 13 } },
-      '1. Click ', h('b', {}, 'Export merged manifest.json'), ' → drag the file into ',
-      h('code', { style: { background: 'rgba(148,163,184,0.12)', padding: '2px 6px', borderRadius: 4 } }, 'library/'),
-      ' on GitHub. ',
-      '2. Commit & push — within a minute, all students see the new items. ',
-      '3. Click ', h('b', {}, 'Clear drafts'), ' to reset the local pending list.'),
-    h('div', { style: { display: 'flex', gap: 8, flexWrap: 'wrap' } },
-      h('button', { class: 'btn btn--primary', onclick: exportManifest }, icon('download'), 'Export merged manifest.json'),
-      h('button', { class: 'btn btn--ghost', onclick: clearDrafts }, 'Clear drafts'),
-    ),
-  );
-
-  mount('#view',
-    head,
-    stats,
-    h('div', { class: 'grid grid--2' },
-      h('div', {},
-        h('div', { class: 'card' },
-          h('h4', { style: { margin: '0 0 12px', fontFamily: 'Space Grotesk' } }, 'Add a library item'),
-          h('div', { class: 'field' }, h('label', { class: 'label' }, 'Subject'), subjSel),
-          modeTabs,
-          modeBody,
-        ),
-      ),
-      h('div', {},
-        h('h3', { style: { fontFamily: 'Space Grotesk', margin: '0 0 12px' } }, 'Pending drafts'),
-        draftList,
-        helpCard,
-      ),
-    ),
-  );
-
-  setMode('note');
-  renderDrafts();
-}
-
-// ---------- Mode forms ----------
-function noteForm(subjSel) {
-  const unitI  = h('input', { class: 'input', type: 'number', min: 1, max: 10, placeholder: 'e.g. 1' });
-  const titleI = h('input', { class: 'input', placeholder: 'e.g. "Cells, Tissues & Homeostasis"' });
-  const fileI  = h('input', { class: 'input', placeholder: 'library/U21BM301/unit1.pdf  OR  https://r2.../unit1.pdf' });
-  const byI    = h('input', { class: 'input', placeholder: 'Your name (optional)' });
-  const tagsI  = h('input', { class: 'input', placeholder: 'tags, comma-separated' });
-
-  return h('div', {},
+  // --- assemble ---
+  const card = h('div', { class: 'card' },
+    h('h3', { style: { margin: '0 0 12px', fontFamily: 'Space Grotesk' } }, 'Drag-and-drop upload'),
     h('div', { class: 'field-row' },
-      h('div', { class: 'field' }, h('label', { class: 'label' }, 'Unit # (optional)'), unitI),
-      h('div', { class: 'field' }, h('label', { class: 'label' }, 'Author (optional)'), byI),
+      h('div', { class: 'field' }, h('label', { class: 'label' }, 'Subject'), subjSel),
     ),
-    h('div', { class: 'field' }, h('label', { class: 'label' }, 'Title'), titleI),
-    h('div', { class: 'field' }, h('label', { class: 'label' }, 'File path or URL'), fileI),
-    h('div', { class: 'field' }, h('label', { class: 'label' }, 'Tags'), tagsI),
-    h('div', { style: { display: 'flex', gap: 8 } },
-      h('button', { class: 'btn btn--primary', onclick: () => {
-        if (!titleI.value.trim() || !fileI.value.trim()) { toast('Title and file path required', 'err'); return; }
-        const d = store.draftLibrary();
-        const sid = subjSel.value;
-        d.subjects[sid] = d.subjects[sid] || { notes: [], papers: [] };
-        d.subjects[sid].notes = d.subjects[sid].notes || [];
-        d.subjects[sid].notes.push({
-          id: 'd' + Date.now() + Math.random().toString(36).slice(2, 6),
-          title: titleI.value.trim(),
-          file: fileI.value.trim().replace(/^\/+/, ''),
-          unit: unitI.value ? +unitI.value : undefined,
-          by: byI.value.trim() || undefined,
-          tags: tagsI.value.split(',').map(x => x.trim()).filter(Boolean),
-          addedAt: todayISO(),
-        });
-        store.set('draftLibrary', d);
-        toast('Note added to drafts'); renderAdmin();
-      }}, icon('plus'), 'Add to drafts'),
-      h('button', { class: 'btn btn--ghost', onclick: () => { unitI.value=''; titleI.value=''; fileI.value=''; byI.value=''; tagsI.value=''; } }, 'Clear'),
+    h('div', { class: 'field' }, h('label', { class: 'label' }, 'What are you uploading?'), kindBtns),
+    extraFieldsMount,
+    dropzone,
+    queueList,
+    h('div', { style: { display: 'flex', justifyContent: 'flex-end', gap: 8, marginTop: 12 } },
+      h('button', { class: 'btn btn--ghost', onclick: () => { queue = []; renderQueue(); } }, 'Clear queue'),
+      uploadBtn,
     ),
   );
+
+  setKind();
+  renderQueue();
+  return card;
 }
 
-function paperForm(subjSel) {
-  const titleI = h('input', { class: 'input', placeholder: 'e.g. "Anatomy & Physiology — Reg 2024"' });
-  const fileI  = h('input', { class: 'input', placeholder: 'library/U21BM301/papers/2024-reg.pdf  OR  https://...' });
-  const yearI  = h('input', { class: 'input', type: 'number', placeholder: '2024' });
-  const typeI  = h('select', { class: 'select' }, ...['Regular','Supplementary','Internal','Model'].map(v => h('option', { value: v }, v)));
-  const uniI   = h('input', { class: 'input', placeholder: 'KPR Institute / Anna University / …' });
-
-  return h('div', {},
-    h('div', { class: 'field' }, h('label', { class: 'label' }, 'Title'), titleI),
-    h('div', { class: 'field' }, h('label', { class: 'label' }, 'File path or URL'), fileI),
-    h('div', { class: 'field-row' },
-      h('div', { class: 'field' }, h('label', { class: 'label' }, 'Year'), yearI),
-      h('div', { class: 'field' }, h('label', { class: 'label' }, 'Type'), typeI),
-    ),
-    h('div', { class: 'field' }, h('label', { class: 'label' }, 'University / Institute'), uniI),
-    h('div', { style: { display: 'flex', gap: 8 } },
-      h('button', { class: 'btn btn--primary', onclick: () => {
-        if (!titleI.value.trim() || !fileI.value.trim()) { toast('Title and file path required', 'err'); return; }
-        const d = store.draftLibrary();
-        const sid = subjSel.value;
-        d.subjects[sid] = d.subjects[sid] || { notes: [], papers: [] };
-        d.subjects[sid].papers = d.subjects[sid].papers || [];
-        d.subjects[sid].papers.push({
-          id: 'd' + Date.now() + Math.random().toString(36).slice(2, 6),
-          title: titleI.value.trim(),
-          file: fileI.value.trim().replace(/^\/+/, ''),
-          year: +yearI.value || null,
-          type: typeI.value,
-          university: uniI.value.trim(),
-          addedAt: todayISO(),
-        });
-        store.set('draftLibrary', d);
-        toast('Paper added to drafts'); renderAdmin();
-      }}, icon('plus'), 'Add to drafts'),
-      h('button', { class: 'btn btn--ghost', onclick: () => { titleI.value=''; fileI.value=''; yearI.value=''; uniI.value=''; } }, 'Clear'),
-    ),
-  );
+// ===========================================================
+// Helpers
+// ===========================================================
+function computePath(subjectId, kind, filename) {
+  if (kind === 'syllabus') return `library/${subjectId}/${filename}`;
+  if (kind === 'paper')    return `library/${subjectId}/papers/${filename}`;
+  return `library/${subjectId}/notes/${filename}`;
 }
 
-function syllabusForm(subjSel) {
-  const fileI = h('input', { class: 'input', placeholder: 'library/U21BM301/syllabus.jpg  OR  https://...' });
-  const preview = h('div', { style: { marginTop: 10 } });
-
-  function showPreview() {
-    preview.innerHTML = '';
-    if (!fileI.value.trim()) return;
-    preview.appendChild(h('img', { src: fileI.value.trim(), alt: 'preview',
-      style: { maxWidth: '100%', borderRadius: 8, border: '1px solid var(--border)' },
-      onerror: function(){ this.style.display = 'none'; preview.appendChild(h('div', { style: { color: 'var(--rose)', fontSize: 12 } }, 'Could not load — check the URL.')); },
-    }));
+function parseFromFilename(filename) {
+  const base = filename.replace(/\.pdf$/i, '');
+  const m = base.match(/^(?:unit[\s_-]*)?(\d{1,2})(?:[\s_-]+(.*))?$/i);
+  if (m) {
+    return { unit: +m[1], title: m[2] ? prettify(m[2]) : `Unit ${m[1]}` };
   }
-  fileI.addEventListener('blur', showPreview);
-
-  return h('div', {},
-    h('p', { style: { color: 'var(--muted)', fontSize: 13, marginTop: 0 } },
-      'Upload a JPG / PNG of the printed syllabus page (showing units & topics). It will be displayed below the subject title — students see it before the notes.'),
-    h('div', { class: 'field' }, h('label', { class: 'label' }, 'Syllabus image path or URL'), fileI),
-    preview,
-    h('div', { style: { display: 'flex', gap: 8, marginTop: 10 } },
-      h('button', { class: 'btn btn--primary', onclick: () => {
-        if (!fileI.value.trim()) { toast('Path required', 'err'); return; }
-        const d = store.draftLibrary();
-        const sid = subjSel.value;
-        d.subjects[sid] = d.subjects[sid] || { notes: [], papers: [] };
-        d.subjects[sid].syllabus = fileI.value.trim().replace(/^\/+(?!\/)/, '');  // keep https:// intact
-        store.set('draftLibrary', d);
-        toast('Syllabus draft set'); renderAdmin();
-      }}, icon('check'), 'Set as draft'),
-      h('button', { class: 'btn btn--ghost', onclick: showPreview }, 'Preview'),
-    ),
-  );
+  return { unit: null, title: prettify(base) };
+}
+function prettify(s) {
+  return s.replace(/[-_]+/g, ' ').replace(/\s+/g, ' ').trim()
+          .split(' ').map(w => w ? w[0].toUpperCase() + w.slice(1) : w).join(' ');
 }
 
-function bulkForm(subjSel) {
-  const txt = h('textarea', { class: 'textarea', style: { minHeight: 220, fontFamily: 'JetBrains Mono', fontSize: 13 },
-    placeholder:
-`# One unit per line. Format:
-#   <unit#> | <title> | <file-path-or-URL>
-#
-1 | Cells, Tissues & Homeostasis  | library/U21BM301/unit1.pdf
-2 | Cardiovascular System         | library/U21BM301/unit2.pdf
-3 | Nervous System                | library/U21BM301/unit3.pdf
-4 | Respiratory & Renal           | library/U21BM301/unit4.pdf
-5 | Musculoskeletal & Endocrine   | library/U21BM301/unit5.pdf`,
-  });
-
-  return h('div', {},
-    h('p', { style: { color: 'var(--muted)', fontSize: 13, marginTop: 0 } },
-      'Paste one line per unit. The fastest way to add all 5 (or however many) unit-wise PDFs of a subject at once. Subject is the one selected above.'),
-    txt,
-    h('div', { style: { display: 'flex', gap: 8, marginTop: 10 } },
-      h('button', { class: 'btn btn--primary', onclick: () => {
-        const lines = txt.value.split('\n').map(l => l.trim()).filter(l => l && !l.startsWith('#'));
-        if (!lines.length) { toast('Nothing to add', 'err'); return; }
-        const d = store.draftLibrary();
-        const sid = subjSel.value;
-        d.subjects[sid] = d.subjects[sid] || { notes: [], papers: [] };
-        d.subjects[sid].notes = d.subjects[sid].notes || [];
-        let added = 0, skipped = 0;
-        lines.forEach(line => {
-          const parts = line.split('|').map(p => p.trim());
-          if (parts.length < 3) { skipped++; return; }
-          const [u, title, file] = parts;
-          d.subjects[sid].notes.push({
-            id: 'd' + Date.now() + Math.random().toString(36).slice(2, 6),
-            unit: u ? +u : undefined,
-            title,
-            file: file.replace(/^\/+(?!\/)/, ''),
-            addedAt: todayISO(),
-          });
-          added++;
-        });
-        store.set('draftLibrary', d);
-        toast(`Added ${added}${skipped ? ` · skipped ${skipped}` : ''}`);
-        renderAdmin();
-      }}, icon('plus'), 'Add all to drafts'),
-      h('button', { class: 'btn btn--ghost', onclick: () => { txt.value = ''; } }, 'Clear'),
-    ),
-  );
+function statusBadge(s) {
+  if (s === 'pending')   return h('span', { class: 'chip' }, 'pending');
+  if (s === 'uploading') return h('span', { class: 'chip chip--amber' }, '… uploading');
+  if (s === 'done')      return h('span', { class: 'chip chip--emerald' }, '✓ done');
+  return h('span', { class: 'chip', style: { color: 'var(--rose)', borderColor: 'rgba(251,113,133,0.4)', background: 'rgba(251,113,133,0.10)' }, title: s }, 'error');
 }
 
-// ---------- Helpers ----------
 function makeSubjectSelect(defaultId) {
   const sel = document.createElement('select');
   sel.className = 'select';
@@ -366,23 +344,4 @@ function makeSubjectSelect(defaultId) {
   });
   sel.value = defaultId || SUBJECTS[0].id;
   return sel;
-}
-
-function countItems(cloud, draft) {
-  let cloudNotes = 0, cloudPapers = 0, cloudSyll = 0, draftItems = 0;
-  Object.values(cloud.subjects || {}).forEach(b => {
-    cloudNotes += (b.notes || []).length;
-    cloudPapers += (b.papers || []).length;
-    if (b.syllabus) cloudSyll++;
-  });
-  Object.values(draft.subjects || {}).forEach(b => {
-    draftItems += (b.notes || []).length + (b.papers || []).length + (b.syllabus ? 1 : 0);
-  });
-  return { cloudNotes, cloudPapers, cloudSyll, draftItems };
-}
-function miniStat(em, val, lbl) {
-  return h('div', { class: 'stat' },
-    h('div', { class: 'stat__icon', style: { fontSize: 22, background: 'rgba(167,139,250,0.10)', borderColor: 'rgba(167,139,250,0.25)', color: '#a78bfa' } }, em),
-    h('div', {}, h('div', { class: 'stat__val' }, String(val)), h('div', { class: 'stat__lbl' }, lbl)),
-  );
 }

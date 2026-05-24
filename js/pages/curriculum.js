@@ -336,14 +336,19 @@ function pdfRow(item, subject, kind) {
 
 function myNotes(s) {
   const my = store.notes().filter(n => n.subjectId === s.id);
-  const head = h('div', { class: 'toolbar' },
-    h('div', { style: { flex: 1, color: 'var(--muted)', fontSize: 13 } }, 'Your private notes (saved in this browser only).'),
-    h('button', { class: 'btn btn--primary', onclick: () => navigate(`#/notes/new?subject=${s.id}`) }, icon('plus'), 'New note'),
+  const banner = h('div', { class: 'private-banner' },
+    h('div', { class: 'private-banner__icon' }, '🔒'),
+    h('div', { style: { flex: 1 } },
+      h('div', { style: { fontWeight: 600, fontSize: 13.5 } }, 'These notes are private to you.'),
+      h('div', { style: { color: 'var(--muted)', fontSize: 12.5, marginTop: 2 } },
+        'Saved only in this browser — never uploaded, never seen by classmates or the admin. Open on a new device to start fresh there.'),
+    ),
+    h('button', { class: 'btn btn--primary btn--sm', onclick: () => navigate(`#/notes/new?subject=${s.id}`) }, icon('plus'), 'New note'),
   );
   if (!my.length) {
-    return h('div', {}, head, h('div', { class: 'empty' }, icon('notes'), h('h4', {}, 'No personal notes yet'), h('p', {}, 'Add a markdown note — it will be saved in your browser and only visible to you.')));
+    return h('div', {}, banner, h('div', { class: 'empty' }, icon('notes'), h('h4', {}, 'No personal notes yet'), h('p', {}, 'Markdown supported — headings, code, tables, lists. Will only ever be visible on this browser.')));
   }
-  return h('div', {}, head,
+  return h('div', {}, banner,
     h('div', { class: 'list' },
       ...my.map(n => h('div', { class: 'note-row', onclick: () => navigate(`#/notes/${n.id}`) },
         h('div', {},

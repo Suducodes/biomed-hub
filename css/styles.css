@@ -1023,6 +1023,79 @@ body::before {
 .unit-group__head h4 { margin: 0; font-family: 'Space Grotesk'; font-size: 16px; }
 
 /* ===========================================================
+   Admin upload (drag-drop)
+   =========================================================== */
+.kind-pills { display: flex; gap: 8px; flex-wrap: wrap; }
+.kind-pill {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 9px 14px; border-radius: 10px;
+  background: rgba(15,23,42,0.45); border: 1px solid var(--border);
+  color: var(--muted); font-weight: 500; font-size: 13.5px; cursor: pointer;
+  transition: color .12s, border-color .12s, background .12s;
+}
+.kind-pill:hover { color: var(--text); border-color: var(--border-strong); }
+.kind-pill.is-active {
+  color: var(--cyan); background: rgba(34,211,238,0.10);
+  border-color: rgba(34,211,238,0.4);
+  box-shadow: 0 0 0 3px rgba(34,211,238,0.08);
+}
+.kind-pill .icon { width: 16px; height: 16px; }
+
+.dropzone {
+  margin-top: 14px;
+  padding: 28px 16px; border-radius: 14px; cursor: pointer;
+  border: 2px dashed var(--border-strong);
+  background: linear-gradient(180deg, rgba(34,211,238,0.04), rgba(167,139,250,0.03));
+  text-align: center;
+  transition: border-color .15s, background .15s, transform .12s;
+}
+.dropzone:hover { border-color: var(--cyan); background: rgba(34,211,238,0.08); }
+.dropzone.is-over {
+  border-color: var(--cyan); background: rgba(34,211,238,0.12);
+  transform: scale(1.005);
+}
+.dropzone__icon {
+  font-size: 38px; margin-bottom: 6px;
+  color: var(--cyan);
+  filter: drop-shadow(0 0 12px rgba(34,211,238,0.5));
+}
+.drop-hint { font-weight: 600; font-size: 15px; font-family: 'Space Grotesk'; }
+.dropzone__hint { color: var(--muted); font-size: 12.5px; margin-top: 6px; }
+
+.queue { display: flex; flex-direction: column; gap: 8px; margin-top: 14px; }
+.queue-row {
+  display: grid; grid-template-columns: 36px 1fr auto auto;
+  gap: 10px; align-items: center;
+  padding: 10px 12px; border-radius: 10px;
+  background: rgba(15,23,42,0.45); border: 1px solid var(--border);
+}
+.queue-row__icon { font-size: 18px; text-align: center; }
+.queue-row__body { min-width: 0; }
+.queue-row__title { font-weight: 600; font-size: 13.5px; }
+.queue-row__path {
+  font-family: 'JetBrains Mono'; font-size: 11.5px; color: var(--muted);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.queue-row__status { font-size: 12px; }
+
+/* ===========================================================
+   "Private to you" banner (My Notes tab)
+   =========================================================== */
+.private-banner {
+  display: flex; gap: 12px; align-items: center;
+  padding: 12px 14px; border-radius: 12px;
+  background: linear-gradient(135deg, rgba(167,139,250,0.10), rgba(34,211,238,0.06));
+  border: 1px solid rgba(167,139,250,0.25);
+  margin-bottom: 14px;
+}
+.private-banner__icon {
+  width: 36px; height: 36px; border-radius: 10px;
+  display: grid; place-items: center;
+  background: rgba(167,139,250,0.18); font-size: 18px;
+  border: 1px solid rgba(167,139,250,0.3); flex-shrink: 0;
+}
+
+/* ===========================================================
    Semester-progress bars (stats page)
    =========================================================== */
 .sem-bar {

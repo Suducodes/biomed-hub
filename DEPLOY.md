@@ -172,7 +172,67 @@ Tell me when you're ready and I'll wire one in. None of them are needed for the 
 
 ---
 
-## Recap — the auto-manifest workflow (Stack B, the easiest)
+## The easiest possible workflow: drag-and-drop inside the site itself
+
+Once the site is hosted on GitHub Pages, open `#/admin`. You'll be asked for a **GitHub Personal Access Token (PAT)** once. After that, every upload is drag-and-drop in the browser — the file gets committed to the repo directly via the GitHub API, and the auto-manifest Action picks it up within ~30 seconds.
+
+### One-time: create a fine-grained PAT (2 minutes)
+
+1. Open <https://github.com/settings/personal-access-tokens/new>.
+2. **Token name:** `biomed-hub admin` (or anything).
+3. **Expiration:** 90 days (you'll renew when it expires; GitHub will email a reminder).
+4. **Resource owner:** your username.
+5. **Repository access:** *Only select repositories* → pick your `biomed-hub` repo.
+6. **Permissions → Repository permissions:**
+   - `Contents` → **Read and write**
+   - (everything else stays "No access")
+7. **Generate token** → copy the `github_pat_…` string.
+8. On the live site → `#/admin` → paste it into the GitHub connection box → **Save & verify**.
+
+The token is stored only in `localStorage` on your admin browser and never sent anywhere except `api.github.com` over HTTPS. To wipe it: **Clear token** button on the same panel.
+
+### Upload flow (every time after)
+
+1. Pick the subject from the dropdown.
+2. Click **Notes (Units)**, **Past papers**, or **Syllabus image**.
+3. Drag PDFs (or click) into the dropzone — multiple at once.
+4. For unit notes, the first file gets your **starting unit #**, the rest auto-increment. Edit the title and unit number inline if needed.
+5. Click **Upload all to GitHub**.
+6. Each file shows `… uploading` → `✓ done`. The auto-manifest Action runs once (regardless of how many files) and the site refreshes within ~30s.
+
+Filenames are auto-generated using the convention the builder expects, so the manifest picks them up correctly without any extra work from you.
+
+---
+
+## Will the site crash when many people open it at once?
+
+Short answer: **no, with a huge margin.**
+
+| Limit | GitHub Pages free tier | Realistic college usage |
+|---|---|---|
+| Concurrent visitors | Effectively unlimited (CDN-served) | 200 students at once = fine |
+| Bandwidth | ~100 GB / month soft cap | 200 students × 100 MB downloads ≈ 20 GB |
+| Site builds | 10 per hour | One per admin upload; uploads are rare |
+| API calls (admin uploads) | 5,000 per hour per token | You'd have to upload a PDF every second |
+
+If you ever cross 500 MB of PDFs in the repo, switch to **Cloudflare R2** for the PDFs (free 10 GB, no bandwidth fees). The site code stays on GitHub Pages. See "Stack A" above.
+
+---
+
+## What about students — do they have to share notes?
+
+No. Each student's own **My Notes** (under each subject), flashcards, streak, calendar events, bookmarks, and discussion posts live in **their own browser's `localStorage`**. Nothing is uploaded. Nothing is shared. The shared layer is *only* what the admin commits to `library/` (the curated PDFs).
+
+Practical consequences:
+- A student opening the site on their laptop and phone gets two independent notebooks.
+- Clearing browser data wipes their local notes — same as any local app.
+- Privacy by default. No moderation needed. No backend bill.
+
+If you ever decide students *should* share — e.g. a community-edited wiki — that's a Supabase / Firestore add-on, ~50 lines of changes in `storage.js`. Ping me when you want it.
+
+---
+
+## Recap — the auto-manifest workflow (still works, no admin token needed)
 
 A GitHub Action (`.github/workflows/build-manifest.yml`) watches `library/` and rebuilds `library/manifest.json` whenever you add/remove PDFs. **You never edit JSON.** Filename conventions encode metadata:
 
