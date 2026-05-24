@@ -1,0 +1,69 @@
+// Entry point — boots background, nav, palette, and registers routes.
+
+import { renderNav, renderStreakCard, setupPalette, setupMenu, setupKeybinds, startBackground } from './ui.js';
+import { route, startRouter } from './router.js';
+import { touchStreak, loadManifest } from './storage.js';
+
+import { renderDashboard } from './pages/dashboard.js';
+import { renderCurriculum, renderYear, renderSemester, renderSubject } from './pages/curriculum.js';
+import { renderNotes, renderNoteEditor, renderNoteView } from './pages/notes.js';
+import { renderPapers } from './pages/papers.js';
+import { renderFlashcards } from './pages/flashcards.js';
+import { renderPomodoro } from './pages/pomodoro.js';
+import { renderECG, stopECG } from './pages/ecg.js';
+import { renderCalculators } from './pages/calculators.js';
+import { renderMindmap } from './pages/mindmap.js';
+import { renderGlossary } from './pages/glossary.js';
+import { renderForum, renderThread } from './pages/forum.js';
+import { renderCalendar } from './pages/calendar.js';
+import { renderBuddy } from './pages/buddy.js';
+import { renderBookmarks } from './pages/bookmarks.js';
+import { renderProfile } from './pages/profile.js';
+import { renderAdmin } from './pages/admin.js';
+
+async function boot() {
+  startBackground();
+  renderNav();
+  renderStreakCard();
+  setupPalette();
+  setupMenu();
+  setupKeybinds();
+  touchStreak();
+  // Pre-fetch manifest so dashboard renders accurate counts on first paint.
+  loadManifest();
+
+  window.addEventListener('hashchange', () => { if (!location.hash.startsWith('#/ecg')) stopECG(); });
+
+  // Routes
+  route('#/',                       renderDashboard);
+  route('#/curriculum',             renderCurriculum);
+  route('#/curriculum/year/:y',     renderYear);
+  route('#/curriculum/sem/:n',      renderSemester);
+  route('#/subject/:id',            renderSubject);
+
+  route('#/notes',                  renderNotes);
+  route('#/notes/new',              () => renderNoteEditor({ id: 'new' }));
+  route('#/notes/:id',              renderNoteView);
+  route('#/notes/:id/edit',         renderNoteEditor);
+
+  route('#/papers',                 renderPapers);
+
+  route('#/flashcards',             renderFlashcards);
+  route('#/pomodoro',               renderPomodoro);
+  route('#/ecg',                    renderECG);
+  route('#/calc',                   renderCalculators);
+  route('#/mindmap',                renderMindmap);
+  route('#/glossary',               renderGlossary);
+
+  route('#/forum',                  renderForum);
+  route('#/forum/:id',              renderThread);
+  route('#/calendar',               renderCalendar);
+  route('#/buddy',                  renderBuddy);
+  route('#/bookmarks',              renderBookmarks);
+  route('#/profile',                renderProfile);
+  route('#/admin',                  renderAdmin);
+
+  startRouter();
+}
+
+boot();

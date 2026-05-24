@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="color-scheme" content="dark" />
+  <meta name="theme-color" content="#0a0e1a" />
+  <!-- ETag-based revalidation: lets static hosts (GitHub Pages, Netlify) cache
+       efficiently, while ensuring fresh JS modules after every deploy. -->
+  <meta http-equiv="Cache-Control" content="no-cache" />
+  <title>BioMed Hub — Student Knowledge Network</title>
+  <meta name="description" content="A student-built knowledge network for Biomedical Engineering. Notes, previous year papers, flashcards, calculators, ECG simulator, and more." />
+  <link rel="icon" type="image/svg+xml" href="assets/favicon.svg" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+<body>
+  <!-- Animated DNA / molecule background -->
+  <canvas id="bg-canvas" aria-hidden="true"></canvas>
+
+  <!-- Command palette (Ctrl/Cmd+K) -->
+  <div id="palette" class="palette" hidden>
+    <div class="palette__panel" role="dialog" aria-label="Command palette">
+      <div class="palette__head">
+        <svg viewBox="0 0 24 24" class="icon"><path d="M21 21l-4.3-4.3M10 18a8 8 0 1 1 0-16 8 8 0 0 1 0 16z" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+        <input id="palette-input" placeholder="Search subjects, notes, papers, calculators…" autocomplete="off" />
+        <kbd>esc</kbd>
+      </div>
+      <div id="palette-results" class="palette__results"></div>
+    </div>
+  </div>
+
+  <!-- Toast container -->
+  <div id="toasts" class="toasts" aria-live="polite"></div>
+
+  <!-- App shell -->
+  <div class="app">
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar__brand">
+        <div class="logo">
+          <svg viewBox="0 0 32 32"><path d="M8 4c4 4 12 4 16 0M8 28c4-4 12-4 16 0M8 4v24M24 4v24" fill="none" stroke="url(#g)" stroke-width="2.4" stroke-linecap="round"/><circle cx="12" cy="10" r="1.6" fill="#22d3ee"/><circle cx="20" cy="14" r="1.6" fill="#a78bfa"/><circle cx="12" cy="18" r="1.6" fill="#34d399"/><circle cx="20" cy="22" r="1.6" fill="#f472b6"/><defs><linearGradient id="g" x1="0" x2="1" y1="0" y2="1"><stop offset="0" stop-color="#22d3ee"/><stop offset="1" stop-color="#a78bfa"/></linearGradient></defs></svg>
+        </div>
+        <div>
+          <div class="brand__title">BioMed Hub</div>
+          <div class="brand__sub">Student Knowledge Network</div>
+        </div>
+      </div>
+
+      <nav class="nav" id="nav"></nav>
+
+      <div class="sidebar__foot">
+        <div class="streak-card" id="streak-card"></div>
+      </div>
+    </aside>
+
+    <!-- Main -->
+    <main class="main">
+      <header class="topbar">
+        <button class="icon-btn topbar__menu" id="menu-btn" aria-label="Toggle menu">
+          <svg viewBox="0 0 24 24" class="icon"><path d="M4 6h16M4 12h16M4 18h16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+        </button>
+        <button class="topbar__search" id="open-palette">
+          <svg viewBox="0 0 24 24" class="icon"><path d="M21 21l-4.3-4.3M10 18a8 8 0 1 1 0-16 8 8 0 0 1 0 16z" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+          <span>Search anything…</span>
+          <kbd>Ctrl K</kbd>
+        </button>
+        <div class="topbar__right">
+          <button class="ghost-btn" id="quick-add">
+            <svg viewBox="0 0 24 24" class="icon"><path d="M12 5v14M5 12h14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+            <span>New Note</span>
+          </button>
+          <a class="avatar" href="#/profile" aria-label="Profile">
+            <span id="avatar-initials">YOU</span>
+          </a>
+        </div>
+      </header>
+
+      <section class="view" id="view"></section>
+
+      <footer class="footer">
+        <span>Built by students, for students · BioMed Hub</span>
+        <span class="dot">·</span>
+        <span>Press <kbd>?</kbd> for shortcuts</span>
+      </footer>
+    </main>
+  </div>
+
+  <!-- Modal mount -->
+  <div id="modal-root"></div>
+
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>

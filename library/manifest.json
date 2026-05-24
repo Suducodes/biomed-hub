@@ -1,0 +1,10 @@
+{
+  "_comment": "BioMed Hub cloud library. Add admin-curated PDFs here. Path is relative to the site root, e.g. 'library/U21BM301/anatomy-unit1.pdf'. The in-app Admin page (/#/admin) can generate ready-to-paste JSON for you.",
+  "version": 1,
+  "subjects": {
+    "U21BM301": {
+      "notes":  [],
+      "papers": []
+    }
+  }
+}
