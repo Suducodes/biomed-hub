@@ -233,7 +233,7 @@ function adminNotes(s, lib) {
     );
   }
 
-  // Group by unit (notes without a unit go to "Other")
+  // Group notes by unit (Google-Classroom-style card grid).
   const groups = new Map();
   lib.notes.forEach(n => {
     const k = (n.unit ?? '').toString().trim();
@@ -246,18 +246,38 @@ function adminNotes(s, lib) {
     return na - nb;
   });
 
-  const wrap = h('div', {});
-  orderedKeys.forEach(k => {
+  // Cycle accent colours so each card has a distinct edge.
+  const accents = ['#22d3ee', '#a78bfa', '#34d399', '#f472b6', '#fbbf24', '#60a5fa', '#fb7185', '#2dd4bf'];
+
+  const wrap = h('div', { class: 'cl-grid' });
+  orderedKeys.forEach((k, idx) => {
     const items = groups.get(k);
-    const heading = k === '' ? 'Other / general' : `Unit ${k}`;
-    wrap.appendChild(h('div', { class: 'unit-group' },
-      h('div', { class: 'unit-group__head' },
-        h('div', { class: 'unit-group__pill' }, k === '' ? '∗' : k),
-        h('h4', {}, heading),
-        h('span', { class: 'chip' }, `${items.length} file${items.length === 1 ? '' : 's'}`),
+    const accent = accents[idx % accents.length];
+    const heading = k === '' ? 'General' : `Unit ${k}`;
+    // The first item's title gives the unit its descriptive title (if matches pattern).
+    const subtitle = items[0]?.title && items[0].title !== heading ? items[0].title : '';
+    const card = h('div', { class: 'cl-card', style: { '--accent': accent } },
+      h('div', { class: 'cl-card__band' }),
+      h('div', { class: 'cl-card__head' },
+        h('div', { class: 'cl-card__num', style: { background: accent } }, k === '' ? '∗' : k),
+        h('div', { class: 'cl-card__title' },
+          h('h4', {}, heading),
+          subtitle && k !== '' ? h('div', { class: 'cl-card__sub' }, subtitle) : null,
+        ),
+        h('div', { class: 'cl-card__count' }, items.length, ' file', items.length === 1 ? '' : 's'),
       ),
-      h('div', { class: 'list' }, ...items.map(it => pdfRow(it, s, 'note'))),
-    ));
+      h('div', { class: 'cl-card__files' },
+        ...items.map(it => h('a', { class: 'cl-file', href: it.file, target: '_blank', rel: 'noopener' },
+          h('div', { class: 'cl-file__icon' }, '📄'),
+          h('div', { class: 'cl-file__body' },
+            h('div', { class: 'cl-file__title' }, it.title, it.draft ? h('span', { class: 'chip chip--amber', style: { marginLeft: 8 } }, 'draft') : null),
+            it.addedAt ? h('div', { class: 'cl-file__sub' }, 'Posted ' + it.addedAt) : null,
+          ),
+          h('a', { class: 'cl-file__dl', href: it.file, download: '', title: 'Download', onclick: (e) => e.stopPropagation() }, '⬇'),
+        )),
+      ),
+    );
+    wrap.appendChild(card);
   });
   return wrap;
 }

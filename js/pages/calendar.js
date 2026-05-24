@@ -1,5 +1,5 @@
 import { h, mount } from '../ui.js';
-import { store, uid, toast } from '../storage.js';
+import { store, uid, toast, todayISO, dateISO } from '../storage.js';
 
 export function renderCalendar() {
   let cursor = new Date();
@@ -34,7 +34,7 @@ export function renderCalendar() {
     const daysInMonth = new Date(cursor.getFullYear(), cursor.getMonth() + 1, 0).getDate();
     const prevDays = new Date(cursor.getFullYear(), cursor.getMonth(), 0).getDate();
 
-    const todayStr = new Date().toISOString().slice(0, 10);
+    const todayStr = todayISO();
     const events = store.events();
 
     // Prev month tail
@@ -58,7 +58,7 @@ export function renderCalendar() {
   }
 
   function cell(d, other, today, events) {
-    const iso = d.toISOString().slice(0, 10);
+    const iso = dateISO(d);
     const ev = events.filter(e => e.date === iso);
     return h('div', { class: 'cal__cell' + (other ? ' is-other' : '') + (iso === today ? ' is-today' : '') },
       h('div', { class: 'num' }, d.getDate()),
@@ -67,7 +67,7 @@ export function renderCalendar() {
   }
 
   function addEvent() {
-    const date = prompt('Date (YYYY-MM-DD)?', new Date().toISOString().slice(0, 10));
+    const date = prompt('Date (YYYY-MM-DD)?', todayISO());
     if (!date) return;
     const title = prompt('Title?'); if (!title) return;
     const type = prompt('Type (exam, assign, other)?', 'other');

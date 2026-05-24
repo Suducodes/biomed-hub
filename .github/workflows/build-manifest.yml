@@ -1,0 +1,40 @@
+name: Auto-build library manifest
+
+# Trigger whenever PDFs/images are added or removed under library/
+# (but NOT when the manifest itself changes, to avoid infinite loops).
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'library/**'
+      - '!library/manifest.json'
+      - 'scripts/build-manifest.mjs'
+      - '.github/workflows/build-manifest.yml'
+  workflow_dispatch: {}
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Build manifest from folder structure
+        run: node scripts/build-manifest.mjs
+
+      - name: Commit manifest.json if changed
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add library/manifest.json
+          if git diff --staged --quiet; then
+            echo "No manifest changes — skipping commit."
+          else
+            git commit -m "chore: auto-build library manifest [skip ci]"
+            git push
+          fi

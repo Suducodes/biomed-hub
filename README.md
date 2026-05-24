@@ -42,24 +42,39 @@ biomed-hub/
 └── assets/
 ```
 
-## Adding PDFs (the fast workflow)
+## Adding PDFs (drag-and-drop, no JSON ever)
 
-Open the site → `Ctrl + K` → "Open admin panel". You get four tabs:
+Once the site is on GitHub, a built-in GitHub Action rebuilds `library/manifest.json` **every time you push a PDF**. You don't edit JSON at all — just drag files into folders named with the course code.
 
-- **Add note** — single PDF, with optional Unit # and tags
-- **Add paper** — past paper, with year / type / university
-- **Set syllabus image** — one image per subject, shown under the title
-- **Bulk add units** — paste many units at once in a single form:
+```
+library/
+  U21BM301/
+    syllabus.jpg
+    notes/
+      unit1-Cells-and-Tissues.pdf
+      unit2-Cardiovascular-System.pdf
+      unit3-Nervous-System.pdf
+    papers/
+      2024-Regular.pdf
+      2024-Supplementary.pdf
+      2023-Regular.pdf
+```
 
-  ```
-  1 | Cells, Tissues & Homeostasis | library/U21BM301/unit1.pdf
-  2 | Cardiovascular System        | library/U21BM301/unit2.pdf
-  3 | Nervous System               | library/U21BM301/unit3.pdf
-  ```
+Filename conventions the Action recognises:
+- `syllabus.jpg|png|webp` → the unit-wise syllabus image shown below the subject title
+- `notes/unit<N>-<title>.pdf` → admin note, Unit N, titled from filename
+- `papers/<YEAR>-<Type>.pdf` → past paper
 
-Add as many subjects' drafts as you want, preview them in the live subject pages (amber "draft (local)" chip), then click **Export merged manifest.json** and commit the file to `library/` on GitHub. Within a minute, every student sees the update.
+Workflow:
+1. On GitHub web UI → repo → `library/<COURSE_CODE>/notes/` → **Add file → Upload files** → drag PDFs → **Commit**
+2. Wait ~1 minute. The Action runs, rebuilds `manifest.json`, and commits it back.
+3. Done — every student sees the new content.
 
-Storage: GitHub handles ~500 MB before things slow down. For the full library (~700 MB+), pair GitHub Pages with **Cloudflare R2** (10 GB free, no egress fees) — see [DEPLOY.md](./DEPLOY.md).
+(For surgical edits, the in-app admin panel at `#/admin` is still there.)
+
+## Where to host
+
+You can run the whole library off **GitHub Pages alone for free** — recommended until you cross ~500 MB. For more, pair GitHub with **Cloudflare R2** (10 GB free, no bandwidth fees ever). See [DEPLOY.md](./DEPLOY.md) for both stacks.
 
 ## License
 

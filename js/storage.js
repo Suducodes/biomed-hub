@@ -32,7 +32,7 @@ export const store = {
     semester: 3,
     xp: 0,
     streak: 0,
-    lastActive: new Date().toISOString().slice(0, 10),
+    lastActive: todayISO(),
     achievements: [],
   }),
   srs:        () => read('srs', {}), // flashcard SRS map
@@ -64,9 +64,10 @@ export function awardXP(amount, reason = '') {
 }
 export function touchStreak() {
   const u = store.user();
-  const today = new Date().toISOString().slice(0, 10);
+  const today = todayISO();
   if (u.lastActive === today) return u.streak;
-  const yest = (() => { const d = new Date(); d.setDate(d.getDate() - 1); return d.toISOString().slice(0, 10); })();
+  const y = new Date(); y.setDate(y.getDate() - 1);
+  const yest = dateISO(y);
   if (u.lastActive === yest) u.streak += 1; else u.streak = 1;
   u.lastActive = today;
   store.set('user', u);
@@ -74,6 +75,17 @@ export function touchStreak() {
 }
 
 export const uid = () => Math.random().toString(36).slice(2, 10);
+
+// --- Local-time date helpers (NOT UTC) ---
+// Using toISOString() previously caused the calendar to show "tomorrow" as
+// today after ~6:30 PM IST, because toISOString returns UTC.
+export function todayISO() {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
+export function dateISO(d) {
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
 
 // --- toast ---
 export function toast(msg, kind = 'ok') {

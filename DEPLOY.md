@@ -172,15 +172,99 @@ Tell me when you're ready and I'll wire one in. None of them are needed for the 
 
 ---
 
-## Recap of the upload workflow (Stack A or B)
+## Recap — the auto-manifest workflow (Stack B, the easiest)
 
-1. Drop PDFs into storage (R2 bucket OR `library/<code>/` folder on GitHub).
-2. Open the site → `#/admin`.
-3. Pick subject → "Bulk add units" → paste all unit lines → **Add all to drafts**.
-4. (Optional) "Set syllabus image" → paste image URL → **Set as draft**.
-5. (Optional) "Add paper" for each past paper.
-6. Preview by clicking the subject — drafts show with an amber "draft (local)" chip.
-7. **Export merged manifest.json** → commit it to `library/manifest.json` on GitHub.
-8. **Clear drafts**. Done.
+A GitHub Action (`.github/workflows/build-manifest.yml`) watches `library/` and rebuilds `library/manifest.json` whenever you add/remove PDFs. **You never edit JSON.** Filename conventions encode metadata:
 
-Net time per subject after the first one: ~2 minutes for a full 5-unit upload.
+```
+library/
+  U21BM301/
+    syllabus.jpg                           ← shown below the subject title
+    notes/
+      unit1-Cells-and-Tissues.pdf          ← Unit 1, title "Cells And Tissues"
+      unit2-Cardiovascular-System.pdf
+      unit3.pdf                            ← Unit 3, title "Unit 3"
+    papers/
+      2024-Regular.pdf
+      2024-Supplementary.pdf
+      2023-Regular-KPR.pdf
+```
+
+Pattern rules (case-insensitive, `-`/`_`/space all work as separators):
+
+| File | Becomes |
+|---|---|
+| `syllabus.jpg`, `syllabus.png`, `syllabus.webp` | Subject's syllabus image |
+| `notes/unit<N>-<title>.pdf` | Unit *N* note, titled from `<title>` |
+| `notes/<N>-<title>.pdf` | Same — `unit` prefix is optional |
+| `notes/<title>.pdf` | Note with no unit (lands under "General") |
+| `papers/<YYYY>-<Type>.pdf` | Past paper: year + type (Regular / Supplementary / Internal / Model) |
+| `papers/<YYYY>-<Type>-<Uni>.pdf` | Adds university |
+| `papers/<YYYY>.pdf` | Year, defaults to Regular |
+
+If a filename doesn't match — drop a `_subject.json` next to it with manual overrides.
+
+### Workflow per subject
+
+1. On GitHub → `library/` → click into (or create) `<COURSE_CODE>/` → `notes/`.
+2. **Add file → Upload files** → drag PDFs named like `unit1-Title.pdf`, `unit2-Title.pdf` …
+3. **Commit changes**.
+4. Within a minute, the Action runs, regenerates `manifest.json`, commits it, and the site rebuilds.
+5. Refresh the site — the unit cards appear.
+
+For syllabus: upload `syllabus.jpg` (or `.png`) directly into `library/<COURSE_CODE>/`.
+For papers: same idea inside `papers/` subfolder.
+
+Time per subject after the first one: **~60 seconds** for 5 units. No CLI, no JSON.
+
+### Manual edits (rare)
+
+If you want to tweak a single title or fix metadata without renaming files, drop `library/<COURSE_CODE>/_subject.json`:
+
+```json
+{
+  "syllabus": "https://your-r2-url/.../custom-syllabus.jpg",
+  "noteOverrides": {
+    "unit3-Foo.pdf": { "title": "Nervous System Deep-Dive", "unit": 3 }
+  },
+  "paperOverrides": {
+    "2024-Regular.pdf": { "university": "Anna University" }
+  }
+}
+```
+
+The Action reads this and applies it on top of filename parsing.
+
+### The in-app admin panel (`#/admin`)
+
+Still works as a fallback or for previewing — it generates JSON snippets you can paste into the manifest. With auto-manifest in place, you mostly won't need it.
+
+---
+
+## Analytics — real download / view counts (optional)
+
+The Library Stats page (`#/stats`) shows library-wide content counts derived from the manifest. For real per-PDF download counts across all students, drop a free analytics snippet into `index.html`:
+
+### Cloudflare Web Analytics (recommended — 30-second setup)
+
+1. <https://dash.cloudflare.com> → **Web Analytics** → **Add a site**.
+2. Enter your GitHub Pages URL → copy the script tag they give you.
+3. Paste it into `index.html` just before `</body>`.
+4. Commit. Cloudflare will track which pages and PDF links students click — privacy-friendly, no cookies, free forever, no traffic limit.
+
+### GoatCounter (even simpler)
+
+1. <https://www.goatcounter.com> → free account → site code.
+2. Paste their `<script>` into `index.html`.
+
+Either tool shows you which PDFs are downloaded most — perfect for the Library Stats page later.
+
+---
+
+## Per-student data — is it shared?
+
+No, by design. Each student's **notes, threads, flashcards, bookmarks, streaks and XP** live in their own browser's localStorage. Open the site on a different device → blank slate. This is privacy-by-default and keeps the cost at zero.
+
+The **shared layer** is everything in `library/` (notes PDFs, papers, syllabus images, manifest) — that's what every student sees identically.
+
+If you want a real shared layer later (sync notes across a student's devices, or shared forum), add Supabase / Firebase later — Section "Optional later: real backend" above.

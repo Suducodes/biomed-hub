@@ -201,7 +201,10 @@ export const EQUIPMENT = [
 
 // --- Calendar seed events --------------------------------------------
 const today = new Date();
-function offset(days) { const d = new Date(today); d.setDate(d.getDate() + days); return d.toISOString().slice(0, 10); }
+function offset(days) {
+  const d = new Date(today); d.setDate(d.getDate() + days);
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
 export const STARTER_EVENTS = [
   { id: 'e1', date: offset(5),  title: 'Submission deadline',  type: 'assign' },
   { id: 'e2', date: offset(14), title: 'Mid-Semester exams',   type: 'exam' },

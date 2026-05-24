@@ -1,10 +1,31 @@
 {
-  "_comment": "BioMed Hub cloud library. Add admin-curated PDFs here. Path is relative to the site root, e.g. 'library/U21BM301/anatomy-unit1.pdf'. The in-app Admin page (/#/admin) can generate ready-to-paste JSON for you.",
   "version": 1,
+  "generatedAt": "2026-05-24T07:14:06.233Z",
   "subjects": {
     "U21BM301": {
-      "notes":  [],
-      "papers": []
+      "notes": [
+        {
+          "id": "U21BM301-unit1-Cells-and-Tissues.pdf",
+          "unit": 1,
+          "title": "Cells And Tissues",
+          "file": "library/U21BM301/notes/unit1-Cells-and-Tissues.pdf"
+        },
+        {
+          "id": "U21BM301-unit2-Cardiovascular-System.pdf",
+          "unit": 2,
+          "title": "Cardiovascular System",
+          "file": "library/U21BM301/notes/unit2-Cardiovascular-System.pdf"
+        }
+      ],
+      "papers": [
+        {
+          "id": "U21BM301-papers-2024-Regular.pdf",
+          "year": 2024,
+          "type": "Regular",
+          "title": "2024 Regular",
+          "file": "library/U21BM301/papers/2024-Regular.pdf"
+        }
+      ]
     }
   }
 }

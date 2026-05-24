@@ -1,5 +1,5 @@
 import { h, mount, icon } from '../ui.js';
-import { store, awardXP, touchStreak, toast } from '../storage.js';
+import { store, awardXP, touchStreak, toast, todayISO } from '../storage.js';
 
 const MODES = {
   focus: { label: 'Focus',       mins: 25, color: '#22d3ee' },
@@ -98,7 +98,7 @@ function complete() {
     const s = store.pomoStats();
     s.sessions += 1;
     s.minutes += MODES.focus.mins;
-    const today = new Date().toISOString().slice(0, 10);
+    const today = todayISO();
     s.dates[today] = (s.dates[today] || 0) + 1;
     store.set('pomoStats', s);
     awardXP(20, 'completed a focus session');

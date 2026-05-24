@@ -89,7 +89,7 @@ const NAV = [
   { href: '#/forum',       label: 'Discussion',    icon: 'forum' },
   { href: '#/calendar',    label: 'Calendar',      icon: 'calendar' },
   { href: '#/bookmarks',   label: 'Bookmarks',     icon: 'bookmark' },
-  { href: '#/profile',     label: 'Profile',       icon: 'user' },
+  { href: '#/stats',       label: 'Library Stats', icon: 'star' },
 ];
 
 export function renderNav() {
@@ -130,10 +130,7 @@ export function renderStreakCard() {
       h('div', { class: 'val' }, `${u.streak} day${u.streak === 1 ? '' : 's'}`),
     ),
   );
-  // avatar initials
-  const initials = u.name.split(' ').map(w => w[0]).slice(0, 2).join('').toUpperCase();
-  const av = document.getElementById('avatar-initials');
-  if (av) av.textContent = initials;
+  // The topbar avatar now links to Library Stats (📊) — no per-user initials.
 }
 
 // --- Modal -----------------------------------------------------------

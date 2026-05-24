@@ -1,6 +1,6 @@
 import { h, mount, icon } from '../ui.js';
 import { SUBJECTS, SEM_LABEL, CATEGORY_META } from '../data.js';
-import { store, getManifest, loadManifest, toast } from '../storage.js';
+import { store, getManifest, loadManifest, toast, todayISO } from '../storage.js';
 
 // Admin panel — composes JSON snippets for `library/manifest.json`.
 // Three modes:
@@ -219,7 +219,7 @@ function noteForm(subjSel) {
           unit: unitI.value ? +unitI.value : undefined,
           by: byI.value.trim() || undefined,
           tags: tagsI.value.split(',').map(x => x.trim()).filter(Boolean),
-          addedAt: new Date().toISOString().slice(0, 10),
+          addedAt: todayISO(),
         });
         store.set('draftLibrary', d);
         toast('Note added to drafts'); renderAdmin();
@@ -258,7 +258,7 @@ function paperForm(subjSel) {
           year: +yearI.value || null,
           type: typeI.value,
           university: uniI.value.trim(),
-          addedAt: new Date().toISOString().slice(0, 10),
+          addedAt: todayISO(),
         });
         store.set('draftLibrary', d);
         toast('Paper added to drafts'); renderAdmin();
@@ -337,7 +337,7 @@ function bulkForm(subjSel) {
             unit: u ? +u : undefined,
             title,
             file: file.replace(/^\/+(?!\/)/, ''),
-            addedAt: new Date().toISOString().slice(0, 10),
+            addedAt: todayISO(),
           });
           added++;
         });

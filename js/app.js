@@ -18,7 +18,7 @@ import { renderForum, renderThread } from './pages/forum.js';
 import { renderCalendar } from './pages/calendar.js';
 import { renderBuddy } from './pages/buddy.js';
 import { renderBookmarks } from './pages/bookmarks.js';
-import { renderProfile } from './pages/profile.js';
+import { renderStats } from './pages/stats.js';
 import { renderAdmin } from './pages/admin.js';
 
 async function boot() {
@@ -60,7 +60,7 @@ async function boot() {
   route('#/calendar',               renderCalendar);
   route('#/buddy',                  renderBuddy);
   route('#/bookmarks',              renderBookmarks);
-  route('#/profile',                renderProfile);
+  route('#/stats',                  renderStats);
   route('#/admin',                  renderAdmin);
 
   startRouter();
