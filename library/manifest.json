@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-05-24T07:36:03.895Z",
+  "generatedAt": "2026-05-24T07:36:26.046Z",
   "subjects": {
     "PE-III": {
       "notes": [
@@ -21,6 +21,12 @@
           "unit": 3,
           "title": "HAD",
           "file": "library/PE-III/UNIT 3 HAD.pdf"
+        },
+        {
+          "id": "PE-III-Unit 4 HAD.pdf",
+          "unit": 4,
+          "title": "HAD",
+          "file": "library/PE-III/Unit 4 HAD.pdf"
         }
       ],
       "papers": []
