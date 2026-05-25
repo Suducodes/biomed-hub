@@ -1,4 +1,4 @@
-import { h, mount, icon } from '../ui.js?v=94729f9';
+import { h, mount, icon } from '../ui.js?v=7cbd43e';
 
 // About the Author — Sudarshan.
 // Kept tasteful: one screen, the story, the why, and a contact strip.

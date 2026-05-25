@@ -1,6 +1,6 @@
-import { h, mount, icon } from '../ui.js?v=94729f9';
-import { SUBJECTS } from '../data.js?v=94729f9';
-import { store, awardXP, touchStreak, toast } from '../storage.js?v=94729f9';
+import { h, mount, icon } from '../ui.js?v=7cbd43e';
+import { SUBJECTS } from '../data.js?v=7cbd43e';
+import { store, awardXP, touchStreak, toast } from '../storage.js?v=7cbd43e';
 
 // Lightweight SM-2-ish spaced repetition.
 // quality: 1 (again), 2 (hard), 3 (good), 4 (easy)

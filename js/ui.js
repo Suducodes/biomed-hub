@@ -1,8 +1,8 @@
 // Shared UI helpers: element creation, icons, modal, sidebar nav, command palette, DNA bg.
 
-import { SUBJECTS } from './data.js?v=94729f9';
-import { store, on } from './storage.js?v=94729f9';
-import { navigate } from './router.js?v=94729f9';
+import { SUBJECTS } from './data.js?v=7cbd43e';
+import { store, on } from './storage.js?v=7cbd43e';
+import { navigate } from './router.js?v=7cbd43e';
 
 // --- DOM helpers -----------------------------------------------------
 export function h(tag, attrs = {}, ...children) {

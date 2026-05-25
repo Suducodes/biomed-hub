@@ -1,5 +1,5 @@
-import { h, mount, icon } from '../ui.js';
-import { toast } from '../storage.js';
+import { h, mount, icon } from '../ui.js?v=7cbd43e';
+import { toast } from '../storage.js?v=7cbd43e';
 
 // Whiteboard — pen / color / eraser / undo / clear / save. Drawings live in
 // localStorage so you don't lose them on a reload.
