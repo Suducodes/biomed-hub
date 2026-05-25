@@ -82,6 +82,8 @@ const NAV = [
   { href: '#/buddy',       label: 'Study Buddy',   icon: 'buddy' },
   { section: 'Tools' },
   { href: '#/ecg',         label: 'ECG Lab',       icon: 'ecg' },
+  { href: '#/rhythm',      label: 'Rhythm Trainer',icon: 'flame' },
+  { href: '#/whiteboard',  label: 'Whiteboard',    icon: 'edit' },
   { href: '#/calc',        label: 'Calculators',   icon: 'calc' },
   { href: '#/mindmap',     label: 'Concept Map',   icon: 'graph' },
   { href: '#/glossary',    label: 'Lab Equipment', icon: 'brain' },
@@ -90,6 +92,7 @@ const NAV = [
   { href: '#/calendar',    label: 'Calendar',      icon: 'calendar' },
   { href: '#/bookmarks',   label: 'Bookmarks',     icon: 'bookmark' },
   { href: '#/stats',       label: 'Library Stats', icon: 'star' },
+  { href: '#/about',       label: 'About',         icon: 'user' },
 ];
 
 export function renderNav() {

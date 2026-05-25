@@ -1,6 +1,6 @@
 import { h, mount, icon } from '../ui.js';
-import { YEARS, SUBJECTS, SEM_LABEL, CATEGORY_META } from '../data.js';
-import { store, loadManifest, getManifest } from '../storage.js';
+import { YEARS, SUBJECTS, SEM_LABEL, CATEGORY_META, KB, STARTER_FLASHCARDS } from '../data.js';
+import { store, loadManifest, getManifest, todayISO } from '../storage.js';
 import { navigate } from '../router.js';
 
 export async function renderDashboard() {
@@ -54,6 +54,7 @@ export async function renderDashboard() {
   mount('#view',
     hero,
     stats,
+    dailyChallengeCard(),
     welcomeCard,
     sectionTitle('Jump into your year', () => navigate('#/curriculum')),
     yearGrid,
@@ -95,6 +96,34 @@ function toolTile(iconName, title, sub) {
     h('div', {}, h('h5', {}, title), h('p', {}, sub)),
   );
 }
+// --- Daily challenge: deterministic by date so the whole batch gets the same item ---
+function dailyChallengeCard() {
+  const items = [
+    ...KB.map(k => ({ kind: 'kb', q: k.keys[0].toUpperCase() + '? — quick recall', a: k.a })),
+    ...STARTER_FLASHCARDS.map(f => ({ kind: 'card', q: f.front, a: f.back })),
+  ];
+  const seed = todayISO().split('-').join('') | 0;
+  const idx = Math.abs(seed) % items.length;
+  const today = items[idx];
+  const seenKey = 'biomedhub:v2:dcSeen:' + todayISO();
+  const seen = localStorage.getItem(seenKey) === '1';
+
+  const ans = h('div', { class: 'daily__answer', style: { display: seen ? 'block' : 'none' } }, today.a);
+  const btn = h('button', { class: 'btn btn--primary btn--sm', onclick: () => {
+    ans.style.display = 'block';
+    localStorage.setItem(seenKey, '1');
+    btn.style.display = 'none';
+  } }, 'Reveal');
+  if (seen) btn.style.display = 'none';
+
+  return h('div', { class: 'daily', style: { marginTop: 18 } },
+    h('div', { class: 'daily__eyebrow' }, '🌅  Daily Challenge · ' + new Date().toLocaleDateString(undefined, { weekday: 'long', month: 'short', day: 'numeric' })),
+    h('div', { class: 'daily__q' }, today.q),
+    h('div', { class: 'daily__actions' }, btn, h('span', { class: 'daily__hint' }, 'New question every day. Try to answer it in your head first.')),
+    ans,
+  );
+}
+
 function recentLibraryItems(m, n) {
   const out = [];
   Object.entries(m.subjects || {}).forEach(([sid, b]) => {

@@ -1,6 +1,6 @@
 import { h, mount, icon } from '../ui.js';
 import { YEARS, SEM_LABEL, subjectsOf, subjectById, CATEGORY_META } from '../data.js';
-import { librarySubject, store, loadManifest } from '../storage.js';
+import { librarySubject, store, loadManifest, toggleUnitDone, isUnitDone, subjectProgress, toast } from '../storage.js';
 import { navigate } from '../router.js';
 
 // ---------- /#/curriculum (year grid) ----------
@@ -164,6 +164,7 @@ export async function renderSubject({ id }) {
 
   // Syllabus image (populated after manifest load)
   const syllabusMount = h('div', { id: 'syllabus-mount' });
+  const progressMount = h('div', { id: 'progress-mount' });
 
   // Tabs
   const tabsRow = h('div', { class: 'tabs' });
@@ -197,6 +198,7 @@ export async function renderSubject({ id }) {
       ),
     ),
     hero,
+    progressMount,
     syllabusMount,
     tabsRow,
     content,
@@ -204,8 +206,25 @@ export async function renderSubject({ id }) {
 
   // ensure manifest is loaded, then paint syllabus + tab content
   await loadManifest();
-  paintSyllabus(syllabusMount, s, librarySubject(s.id));
+  const lib = librarySubject(s.id);
+  paintSyllabus(syllabusMount, s, lib);
+  paintProgress(progressMount, s, lib);
   paint();
+}
+
+function paintProgress(mountEl, s, lib) {
+  mountEl.innerHTML = '';
+  const totalUnits = new Set(lib.notes.map(n => n.unit).filter(u => u != null)).size;
+  if (totalUnits === 0) return;
+  const p = subjectProgress(s.id, totalUnits);
+  mountEl.appendChild(h('div', { class: 'subj-progress' },
+    h('div', { class: 'subj-progress__lbl' },
+      h('span', {}, 'Your progress'),
+      h('span', { class: 'subj-progress__pct' }, `${p.done} / ${p.total} units · ${p.pct}%`),
+    ),
+    h('div', { class: 'subj-progress__track' }, h('div', { class: 'subj-progress__fill', style: { width: p.pct + '%' } })),
+    h('div', { class: 'subj-progress__hint' }, 'Tick a unit below to mark it studied. Saved only in this browser.'),
+  ));
 }
 
 // ---------- Syllabus image ----------
@@ -256,7 +275,8 @@ function adminNotes(s, lib) {
     const heading = k === '' ? 'General' : `Unit ${k}`;
     // The first item's title gives the unit its descriptive title (if matches pattern).
     const subtitle = items[0]?.title && items[0].title !== heading ? items[0].title : '';
-    const card = h('div', { class: 'cl-card', style: { '--accent': accent } },
+    const unitDone = k !== '' && isUnitDone(s.id, k);
+    const card = h('div', { class: 'cl-card' + (unitDone ? ' is-done' : ''), style: { '--accent': accent } },
       h('div', { class: 'cl-card__band' }),
       h('div', { class: 'cl-card__head' },
         h('div', { class: 'cl-card__num', style: { background: accent } }, k === '' ? '∗' : k),
@@ -264,7 +284,19 @@ function adminNotes(s, lib) {
           h('h4', {}, heading),
           subtitle && k !== '' ? h('div', { class: 'cl-card__sub' }, subtitle) : null,
         ),
-        h('div', { class: 'cl-card__count' }, items.length, ' file', items.length === 1 ? '' : 's'),
+        k !== ''
+          ? h('button', {
+              class: 'cl-card__done' + (unitDone ? ' is-done' : ''),
+              title: unitDone ? 'Marked as studied — click to unmark' : 'Mark as studied',
+              onclick: () => {
+                const nowDone = toggleUnitDone(s.id, k);
+                toast(nowDone ? `Unit ${k} marked as studied · +5 XP` : `Unit ${k} unmarked`);
+                if (nowDone) { import('../storage.js').then(m => { m.awardXP(5); m.touchStreak(); }); }
+                // Re-render the subject view (cheap)
+                renderSubject({ id: s.id });
+              },
+            }, unitDone ? '✓ Studied' : 'Mark studied')
+          : h('div', { class: 'cl-card__count' }, items.length, ' file', items.length === 1 ? '' : 's'),
       ),
       h('div', { class: 'cl-card__files' },
         ...items.map(it => h('a', { class: 'cl-file', href: it.file, target: '_blank', rel: 'noopener' },

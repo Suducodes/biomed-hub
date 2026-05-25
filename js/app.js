@@ -11,6 +11,9 @@ import { renderPapers } from './pages/papers.js';
 import { renderFlashcards } from './pages/flashcards.js';
 import { renderPomodoro } from './pages/pomodoro.js';
 import { renderECG, stopECG } from './pages/ecg.js';
+import { renderRhythm, stopRhythm } from './pages/rhythm.js';
+import { renderWhiteboard } from './pages/whiteboard.js';
+import { renderAbout } from './pages/about.js';
 import { renderCalculators } from './pages/calculators.js';
 import { renderMindmap } from './pages/mindmap.js';
 import { renderGlossary } from './pages/glossary.js';
@@ -32,7 +35,10 @@ async function boot() {
   // Pre-fetch manifest so dashboard renders accurate counts on first paint.
   loadManifest();
 
-  window.addEventListener('hashchange', () => { if (!location.hash.startsWith('#/ecg')) stopECG(); });
+  window.addEventListener('hashchange', () => {
+    if (!location.hash.startsWith('#/ecg'))    stopECG();
+    if (!location.hash.startsWith('#/rhythm')) stopRhythm();
+  });
 
   // Routes
   route('#/',                       renderDashboard);
@@ -51,9 +57,12 @@ async function boot() {
   route('#/flashcards',             renderFlashcards);
   route('#/pomodoro',               renderPomodoro);
   route('#/ecg',                    renderECG);
+  route('#/rhythm',                 renderRhythm);
+  route('#/whiteboard',             renderWhiteboard);
   route('#/calc',                   renderCalculators);
   route('#/mindmap',                renderMindmap);
   route('#/glossary',               renderGlossary);
+  route('#/about',                  renderAbout);
 
   route('#/forum',                  renderForum);
   route('#/forum/:id',              renderThread);

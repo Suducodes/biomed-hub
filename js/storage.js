@@ -41,8 +41,31 @@ export const store = {
   // can be exported as JSON and committed to the cloud manifest.
   draftLibrary: () => read('draftLibrary', { subjects: {} }),
 
+  // Per-subject unit completion tracker (private, browser-local).
+  // shape: { "U21BM301": { "1": true, "3": true }, ... }
+  unitProgress: () => read('unitProgress', {}),
+
   set(key, value) { write(key, value); emit(key, value); },
 };
+
+export function toggleUnitDone(subjectId, unit) {
+  const p = store.unitProgress();
+  p[subjectId] = p[subjectId] || {};
+  if (p[subjectId][unit]) delete p[subjectId][unit];
+  else p[subjectId][unit] = true;
+  store.set('unitProgress', p);
+  return !!p[subjectId][unit];
+}
+export function isUnitDone(subjectId, unit) {
+  const p = store.unitProgress();
+  return !!(p[subjectId] && p[subjectId][unit]);
+}
+export function subjectProgress(subjectId, totalUnits) {
+  if (!totalUnits) return { done: 0, total: 0, pct: 0 };
+  const p = store.unitProgress()[subjectId] || {};
+  const done = Object.keys(p).length;
+  return { done, total: totalUnits, pct: Math.round((done / totalUnits) * 100) };
+}
 
 // --- pub/sub ---
 const subs = new Map();
