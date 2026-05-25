@@ -1,4 +1,5 @@
-import { h, mount, icon, toast } from '../ui.js?v=94729f9';
+import { h, mount, icon } from '../ui.js';
+import { toast } from '../storage.js';
 
 // Whiteboard — pen / color / eraser / undo / clear / save. Drawings live in
 // localStorage so you don't lose them on a reload.
@@ -21,17 +22,16 @@ export function renderWhiteboard() {
   );
 
   const canvas = h('canvas', { class: 'wb-canvas' });
-  // Set logical size — actual pixel size set on resize
   const resize = () => {
     const parent = canvas.parentElement;
     if (!parent) return;
     const w = parent.clientWidth;
-    const h = Math.max(420, Math.min(700, w * 0.6));
+    const hh = Math.max(420, Math.min(700, w * 0.6));
     const dpr = window.devicePixelRatio || 1;
     canvas.width = w * dpr;
-    canvas.height = h * dpr;
+    canvas.height = hh * dpr;
     canvas.style.width = w + 'px';
-    canvas.style.height = h + 'px';
+    canvas.style.height = hh + 'px';
     const ctx = canvas.getContext('2d');
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     redraw();
@@ -59,7 +59,7 @@ export function renderWhiteboard() {
     drawSegment(last, p, strokes[strokes.length - 1]);
     last = p;
   }
-  function end(e) {
+  function end() {
     if (!drawing) return;
     drawing = false;
     persist();
@@ -75,7 +75,6 @@ export function renderWhiteboard() {
     const c = ctx();
     c.fillStyle = '#0a121f';
     c.fillRect(0, 0, canvas.clientWidth, canvas.clientHeight);
-    // subtle dot grid
     c.fillStyle = 'rgba(148,163,184,0.10)';
     for (let x = 20; x < canvas.clientWidth; x += 24)
       for (let y = 20; y < canvas.clientHeight; y += 24) {
