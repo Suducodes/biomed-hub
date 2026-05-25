@@ -1,7 +1,7 @@
-import { h, mount, icon } from '../ui.js';
-import { SUBJECTS, SEM_LABEL, CATEGORY_META } from '../data.js';
-import { loadManifest, getManifest } from '../storage.js';
-import { navigate } from '../router.js';
+import { h, mount, icon } from '../ui.js?v=94729f9';
+import { SUBJECTS, SEM_LABEL, CATEGORY_META } from '../data.js?v=94729f9';
+import { loadManifest, getManifest } from '../storage.js?v=94729f9';
+import { navigate } from '../router.js?v=94729f9';
 
 // Global "Past Papers" browser — flattens the cloud manifest across all
 // subjects. Filterable by semester, subject, year, type.

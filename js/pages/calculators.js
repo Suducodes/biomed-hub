@@ -1,4 +1,4 @@
-import { h, mount } from '../ui.js';
+import { h, mount } from '../ui.js?v=94729f9';
 
 // A toolkit of biomedical / clinical calculators.
 

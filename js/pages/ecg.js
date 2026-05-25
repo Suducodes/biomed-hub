@@ -1,4 +1,4 @@
-import { h, mount, icon } from '../ui.js';
+import { h, mount, icon } from '../ui.js?v=94729f9';
 
 // A handcrafted ECG-like waveform generator + canvas renderer.
 // Procedurally generates P, QRS, T waves with adjustable BPM, noise, and arrhythmia mode.

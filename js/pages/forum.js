@@ -1,7 +1,7 @@
-import { h, mount, icon } from '../ui.js';
-import { SUBJECTS, CATEGORY_META, subjectById } from '../data.js';
-import { store, uid, toast } from '../storage.js';
-import { navigate } from '../router.js';
+import { h, mount, icon } from '../ui.js?v=94729f9';
+import { SUBJECTS, CATEGORY_META, subjectById } from '../data.js?v=94729f9';
+import { store, uid, toast } from '../storage.js?v=94729f9';
+import { navigate } from '../router.js?v=94729f9';
 
 export function renderForum() {
   const head = h('div', { class: 'page-head' },

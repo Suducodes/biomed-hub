@@ -1,7 +1,7 @@
-import { h, mount, icon } from '../ui.js';
-import { YEARS, SUBJECTS, SEM_LABEL, CATEGORY_META, KB, STARTER_FLASHCARDS } from '../data.js';
-import { store, loadManifest, getManifest, todayISO } from '../storage.js';
-import { navigate } from '../router.js';
+import { h, mount, icon } from '../ui.js?v=94729f9';
+import { YEARS, SUBJECTS, SEM_LABEL, CATEGORY_META, KB, STARTER_FLASHCARDS } from '../data.js?v=94729f9';
+import { store, loadManifest, getManifest, todayISO } from '../storage.js?v=94729f9';
+import { navigate } from '../router.js?v=94729f9';
 
 export async function renderDashboard() {
   await loadManifest();

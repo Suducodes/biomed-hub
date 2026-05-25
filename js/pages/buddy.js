@@ -1,6 +1,6 @@
-import { h, mount } from '../ui.js';
-import { KB, SUBJECTS } from '../data.js';
-import { store } from '../storage.js';
+import { h, mount } from '../ui.js?v=94729f9';
+import { KB, SUBJECTS } from '../data.js?v=94729f9';
+import { store } from '../storage.js?v=94729f9';
 
 // Study Buddy — purely client-side keyword search over a curated syllabus
 // knowledge base AND each student's own notes. No external API, no tokens, no

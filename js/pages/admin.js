@@ -1,10 +1,10 @@
-import { h, mount, icon, modal } from '../ui.js';
-import { SUBJECTS, SEM_LABEL, CATEGORY_META } from '../data.js';
-import { store, getManifest, loadManifest, toast, todayISO } from '../storage.js';
+import { h, mount, icon, modal } from '../ui.js?v=94729f9';
+import { SUBJECTS, SEM_LABEL, CATEGORY_META } from '../data.js?v=94729f9';
+import { store, getManifest, loadManifest, toast, todayISO } from '../storage.js?v=94729f9';
 import {
   getSettings, setSettings, clearSettings, autoDetectRepo,
   validateToken, putFile, noteFilename, paperFilename, syllabusFilename, slugify,
-} from '../github.js';
+} from '../github.js?v=94729f9';
 
 // Admin panel — drag-and-drop direct upload to the repo.
 //

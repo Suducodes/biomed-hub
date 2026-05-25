@@ -1,5 +1,5 @@
-import { h, mount, icon } from '../ui.js';
-import { store, awardXP, touchStreak, toast, todayISO } from '../storage.js';
+import { h, mount, icon } from '../ui.js?v=94729f9';
+import { store, awardXP, touchStreak, toast, todayISO } from '../storage.js?v=94729f9';
 
 const MODES = {
   focus: { label: 'Focus',       mins: 25, color: '#22d3ee' },
