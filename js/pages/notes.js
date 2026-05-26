@@ -1,8 +1,8 @@
-import { h, mount, icon, modal } from '../ui.js?v=5f017ca';
-import { SUBJECTS, CATEGORY_META, subjectById } from '../data.js?v=5f017ca';
-import { store, uid, toast, awardXP, touchStreak } from '../storage.js?v=5f017ca';
-import { renderMD } from '../md.js?v=5f017ca';
-import { navigate } from '../router.js?v=5f017ca';
+import { h, mount, icon, modal } from '../ui.js?v=960a27c';
+import { SUBJECTS, CATEGORY_META, subjectById } from '../data.js?v=960a27c';
+import { store, uid, toast, awardXP, touchStreak } from '../storage.js?v=960a27c';
+import { renderMD } from '../md.js?v=960a27c';
+import { navigate } from '../router.js?v=960a27c';
 
 // "My Notes" — personal markdown notes stored locally in the student's browser.
 

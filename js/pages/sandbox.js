@@ -1,5 +1,5 @@
-import { h, mount, icon } from '../ui.js';
-import { toast } from '../storage.js';
+import { h, mount, icon } from '../ui.js?v=960a27c';
+import { toast } from '../storage.js?v=960a27c';
 
 // Code Sandbox — in-browser editor + Run + console output.
 // JS runs in a sandboxed iframe so it can't trash the host page.

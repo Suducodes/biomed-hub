@@ -2,7 +2,7 @@
 // localStorage wrapper for student-side prefs, plus a cloud-manifest fetcher
 // for everything the admin has uploaded (notes & papers).
 
-import { STARTER_FLASHCARDS, STARTER_EVENTS } from './data.js?v=5f017ca';
+import { STARTER_FLASHCARDS, STARTER_EVENTS } from './data.js?v=960a27c';
 
 const NS = 'biomedhub:v2';   // bumped after curriculum restructure
 const k = (key) => `${NS}:${key}`;

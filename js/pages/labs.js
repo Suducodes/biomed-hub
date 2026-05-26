@@ -1,6 +1,6 @@
-import { h, mount, icon } from '../ui.js?v=5f017ca';
-import { SUBJECTS, SEM_LABEL, CATEGORY_META, subjectById } from '../data.js?v=5f017ca';
-import { navigate } from '../router.js?v=5f017ca';
+import { h, mount, icon } from '../ui.js?v=960a27c';
+import { SUBJECTS, SEM_LABEL, CATEGORY_META, subjectById } from '../data.js?v=960a27c';
+import { navigate } from '../router.js?v=960a27c';
 
 // Labs hub — every lab course from R2021 + a detail page per lab.
 //

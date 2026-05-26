@@ -1,32 +1,32 @@
 // Entry point — boots background, nav, palette, and registers routes.
 
-import { renderNav, renderStreakCard, setupPalette, setupMenu, setupKeybinds, startBackground } from './ui.js';
-import { route, startRouter } from './router.js';
-import { touchStreak, loadManifest } from './storage.js';
+import { renderNav, renderStreakCard, setupPalette, setupMenu, setupKeybinds, startBackground } from './ui.js?v=960a27c';
+import { route, startRouter } from './router.js?v=960a27c';
+import { touchStreak, loadManifest } from './storage.js?v=960a27c';
 
-import { renderDashboard } from './pages/dashboard.js';
-import { renderCurriculum, renderYear, renderSemester, renderSubject } from './pages/curriculum.js';
-import { renderNotes, renderNoteEditor, renderNoteView } from './pages/notes.js';
-import { renderPapers } from './pages/papers.js';
-import { renderFlashcards } from './pages/flashcards.js';
-import { renderPomodoro } from './pages/pomodoro.js';
-import { renderECG, stopECG } from './pages/ecg.js';
-import { renderRhythm, stopRhythm } from './pages/rhythm.js';
-import { renderWhiteboard } from './pages/whiteboard.js';
-import { renderAbout } from './pages/about.js';
-import { renderCalculators } from './pages/calculators.js';
-import { renderMindmap } from './pages/mindmap.js';
-import { renderGlossary } from './pages/glossary.js';
-import { renderForum, renderThread } from './pages/forum.js';
-import { renderCalendar } from './pages/calendar.js';
-import { renderBuddy } from './pages/buddy.js';
-import { renderBookmarks } from './pages/bookmarks.js';
-import { renderStats } from './pages/stats.js';
-import { renderAdmin } from './pages/admin.js';
-import { renderTools } from './pages/tools.js';
-import { renderSim, stopSim } from './pages/sim.js';
-import { renderLabs, renderLab } from './pages/labs.js';
-import { renderSandbox } from './pages/sandbox.js';
+import { renderDashboard } from './pages/dashboard.js?v=960a27c';
+import { renderCurriculum, renderYear, renderSemester, renderSubject } from './pages/curriculum.js?v=960a27c';
+import { renderNotes, renderNoteEditor, renderNoteView } from './pages/notes.js?v=960a27c';
+import { renderPapers } from './pages/papers.js?v=960a27c';
+import { renderFlashcards } from './pages/flashcards.js?v=960a27c';
+import { renderPomodoro } from './pages/pomodoro.js?v=960a27c';
+import { renderECG, stopECG } from './pages/ecg.js?v=960a27c';
+import { renderRhythm, stopRhythm } from './pages/rhythm.js?v=960a27c';
+import { renderWhiteboard } from './pages/whiteboard.js?v=960a27c';
+import { renderAbout } from './pages/about.js?v=960a27c';
+import { renderCalculators } from './pages/calculators.js?v=960a27c';
+import { renderMindmap } from './pages/mindmap.js?v=960a27c';
+import { renderGlossary } from './pages/glossary.js?v=960a27c';
+import { renderForum, renderThread } from './pages/forum.js?v=960a27c';
+import { renderCalendar } from './pages/calendar.js?v=960a27c';
+import { renderBuddy } from './pages/buddy.js?v=960a27c';
+import { renderBookmarks } from './pages/bookmarks.js?v=960a27c';
+import { renderStats } from './pages/stats.js?v=960a27c';
+import { renderAdmin } from './pages/admin.js?v=960a27c';
+import { renderTools } from './pages/tools.js?v=960a27c';
+import { renderSim, stopSim } from './pages/sim.js?v=960a27c';
+import { renderLabs, renderLab } from './pages/labs.js?v=960a27c';
+import { renderSandbox } from './pages/sandbox.js?v=960a27c';
 
 async function boot() {
   startBackground();

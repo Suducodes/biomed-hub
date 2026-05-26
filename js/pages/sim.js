@@ -1,5 +1,5 @@
-import { h, mount, icon } from '../ui.js?v=5f017ca';
-import { navigate } from '../router.js?v=5f017ca';
+import { h, mount, icon } from '../ui.js?v=960a27c';
+import { navigate } from '../router.js?v=960a27c';
 
 // Generic simulation page — handles two cases:
 //   #/sim/phet/<sim-id>   → iframe-embed an official PhET HTML5 simulation

@@ -1,7 +1,7 @@
-import { h, mount, icon } from '../ui.js?v=5f017ca';
-import { SUBJECTS, SEM_LABEL, CATEGORY_META, YEARS } from '../data.js?v=5f017ca';
-import { store, loadManifest, getManifest } from '../storage.js?v=5f017ca';
-import { navigate } from '../router.js?v=5f017ca';
+import { h, mount, icon } from '../ui.js?v=960a27c';
+import { SUBJECTS, SEM_LABEL, CATEGORY_META, YEARS } from '../data.js?v=960a27c';
+import { store, loadManifest, getManifest } from '../storage.js?v=960a27c';
+import { navigate } from '../router.js?v=960a27c';
 
 // Library-wide statistics. Everything here is derived from the live
 // manifest.json + each visitor's local activity, so the numbers are real

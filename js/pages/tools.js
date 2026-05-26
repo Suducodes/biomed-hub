@@ -1,5 +1,5 @@
-import { h, mount, icon } from '../ui.js?v=5f017ca';
-import { navigate } from '../router.js?v=5f017ca';
+import { h, mount, icon } from '../ui.js?v=960a27c';
+import { navigate } from '../router.js?v=960a27c';
 
 // Tools hub — PhET-style: vertical category sidebar on the left, grid of
 // matching simulation cards on the right.

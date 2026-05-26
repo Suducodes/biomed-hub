@@ -1,5 +1,5 @@
-import { h, mount, icon } from '../ui.js?v=5f017ca';
-import { EQUIPMENT } from '../data.js?v=5f017ca';
+import { h, mount, icon } from '../ui.js?v=960a27c';
+import { EQUIPMENT } from '../data.js?v=960a27c';
 
 export function renderGlossary() {
   let q = '';

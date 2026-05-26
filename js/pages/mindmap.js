@@ -1,6 +1,6 @@
-import { h, mount } from '../ui.js?v=5f017ca';
-import { SEM_LABEL, subjectsOf, CATEGORY_META } from '../data.js?v=5f017ca';
-import { navigate } from '../router.js?v=5f017ca';
+import { h, mount } from '../ui.js?v=960a27c';
+import { SEM_LABEL, subjectsOf, CATEGORY_META } from '../data.js?v=960a27c';
+import { navigate } from '../router.js?v=960a27c';
 
 // Radial map: pick a semester, see its subjects arranged around a central node,
 // coloured by category. Click any subject to jump to its detail page.
