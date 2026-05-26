@@ -108,44 +108,107 @@ const LAB_DATA = {
 };
 
 // ---------- Routes ----------
+const OPEN_KEY = 'biomedhub:v2:labsOpenSem';
+
 export function renderLabs() {
   const labs = SUBJECTS.filter(s => /Laboratory|Practices|Graphics/i.test(s.name) || s.type === 'Lab')
     .sort((a, b) => a.sem - b.sem);
 
+  const total = labs.length;
+  const withContent = labs.filter(s => LAB_DATA[s.id]).length;
+  const totalExp = labs.reduce((c, s) => c + (LAB_DATA[s.id]?.experiments.length || 0), 0);
+
   const head = h('div', { class: 'page-head' },
     h('div', {},
       h('h1', { html: 'All <span class="accent">Labs</span>' }),
-      h('p', {}, 'Every laboratory course in the R2021 curriculum. Click a lab to see equipment used, the full list of experiments, and step-by-step procedures.'),
+      h('p', {}, 'Every laboratory course in the R2021 curriculum, grouped by semester. Tap a semester to expand, then a lab to see equipment and step-by-step experiments.'),
     ),
   );
 
-  const grid = h('div', { class: 'lab-grid' },
-    ...labs.map(s => {
-      const meta = CATEGORY_META[s.category];
-      const data = LAB_DATA[s.id];
-      const expCount = data?.experiments.length ?? 0;
-      const eqCount = data?.equipment.length ?? 0;
-      return h('a', { class: 'lab-card', href: `#/lab/${s.id}`, style: { '--accent': meta.color } },
-        h('div', { class: 'lab-card__band' }),
-        h('div', { class: 'lab-card__body' },
-          h('div', { class: 'lab-card__head' },
-            h('span', { class: 'chip', style: { color: meta.color, borderColor: meta.color + '40', background: meta.color + '14' } }, s.id),
-            h('span', { class: 'chip' }, `Sem ${SEM_LABEL[s.sem-1]}`),
-          ),
-          h('h4', {}, s.name),
-          h('p', {}, s.blurb),
-          h('div', { class: 'lab-card__stats' },
-            h('span', {}, '🧪 ', h('b', {}, expCount), ' experiments'),
-            h('span', {}, '🔧 ', h('b', {}, eqCount), ' equipment'),
-            h('span', {}, '📊 ', h('b', {}, s.credits), ' credits'),
-          ),
-          !data ? h('div', { class: 'chip chip--amber', style: { marginTop: 10 } }, 'Details coming soon') : null,
-        ),
-      );
-    }),
+  // Top stats
+  const stats = h('div', { class: 'grid grid--3', style: { marginBottom: 22 } },
+    miniStat('🧪', total,        'Lab courses'),
+    miniStat('📚', `${withContent}/${total}`, 'With protocols'),
+    miniStat('🔬', totalExp,     'Experiments authored'),
   );
 
-  mount('#view', head, grid);
+  // Group by semester
+  const bySem = new Map();
+  labs.forEach(s => {
+    if (!bySem.has(s.sem)) bySem.set(s.sem, []);
+    bySem.get(s.sem).push(s);
+  });
+
+  // remember which sem(s) the user opened; default = first sem with content
+  let openSems = new Set();
+  try { openSems = new Set(JSON.parse(localStorage.getItem(OPEN_KEY) || '[]')); } catch {}
+  if (openSems.size === 0) {
+    const firstWith = [...bySem.keys()].find(sem => bySem.get(sem).some(s => LAB_DATA[s.id]));
+    if (firstWith) openSems.add(firstWith);
+  }
+
+  const wrap = h('div', { class: 'lab-sems' });
+  [...bySem.keys()].sort((a, b) => a - b).forEach(sem => {
+    const semLabs = bySem.get(sem);
+    const isOpen = openSems.has(sem);
+    const sectionId = 'lab-sem-' + sem;
+    const grid = h('div', { class: 'lab-grid', id: sectionId, hidden: !isOpen ? '' : null },
+      ...semLabs.map(s => labCard(s)),
+    );
+    const chevron = h('span', { class: 'lab-sem__chev' }, isOpen ? '▾' : '▸');
+    const header = h('button', { class: 'lab-sem__head' + (isOpen ? ' is-open' : ''), onclick: () => {
+      const nowOpen = grid.hasAttribute('hidden');
+      if (nowOpen) { grid.removeAttribute('hidden'); openSems.add(sem); }
+      else         { grid.setAttribute('hidden', ''); openSems.delete(sem); }
+      header.classList.toggle('is-open', nowOpen);
+      chevron.textContent = nowOpen ? '▾' : '▸';
+      localStorage.setItem(OPEN_KEY, JSON.stringify([...openSems]));
+    } },
+      chevron,
+      h('div', { class: 'lab-sem__num' }, SEM_LABEL[sem-1]),
+      h('div', { class: 'lab-sem__title' },
+        h('h3', {}, `Semester ${SEM_LABEL[sem-1]}`),
+        h('div', { class: 'lab-sem__sub' }, `${semLabs.length} lab${semLabs.length === 1 ? '' : 's'} · ${semLabs.reduce((c, s) => c + (LAB_DATA[s.id]?.experiments.length || 0), 0)} experiments`),
+      ),
+      h('div', { class: 'lab-sem__chips' },
+        ...semLabs.slice(0, 4).map(s => h('span', { class: 'chip' }, s.id)),
+        semLabs.length > 4 ? h('span', { class: 'chip' }, `+${semLabs.length - 4}`) : null,
+      ),
+    );
+    wrap.appendChild(h('div', { class: 'lab-sem' }, header, grid));
+  });
+
+  mount('#view', head, stats, wrap);
+}
+
+function labCard(s) {
+  const meta = CATEGORY_META[s.category];
+  const data = LAB_DATA[s.id];
+  const expCount = data?.experiments.length ?? 0;
+  const eqCount  = data?.equipment.length  ?? 0;
+  return h('a', { class: 'lab-card', href: `#/lab/${s.id}`, style: { '--accent': meta.color } },
+    h('div', { class: 'lab-card__band' }),
+    h('div', { class: 'lab-card__body' },
+      h('div', { class: 'lab-card__head' },
+        h('span', { class: 'chip', style: { color: meta.color, borderColor: meta.color + '40', background: meta.color + '14' } }, s.id),
+        h('span', { class: 'chip' }, `${s.credits} credits`),
+      ),
+      h('h4', {}, s.name),
+      h('p', {}, s.blurb),
+      h('div', { class: 'lab-card__stats' },
+        h('span', {}, '🧪 ', h('b', {}, expCount), ' experiments'),
+        h('span', {}, '🔧 ', h('b', {}, eqCount), ' equipment'),
+      ),
+      !data ? h('div', { class: 'chip chip--amber', style: { marginTop: 10 } }, 'Details coming soon') : null,
+    ),
+  );
+}
+
+function miniStat(em, val, lbl) {
+  return h('div', { class: 'stat' },
+    h('div', { class: 'stat__icon', style: { fontSize: 22, background: 'rgba(167,139,250,0.10)', borderColor: 'rgba(167,139,250,0.25)', color: '#a78bfa' } }, em),
+    h('div', {}, h('div', { class: 'stat__val' }, String(val)), h('div', { class: 'stat__lbl' }, lbl)),
+  );
 }
 
 export function renderLab({ id }) {

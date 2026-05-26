@@ -1307,6 +1307,196 @@ body::before {
 .sim-knob input[type="range"] { width: 100%; accent-color: var(--cyan); }
 
 /* ===========================================================
+   Tools — PhET-style layout (sidebar + grid)
+   =========================================================== */
+.tools-layout {
+  display: grid;
+  grid-template-columns: 240px 1fr;
+  gap: 20px;
+  align-items: start;
+}
+.tools-side {
+  position: sticky; top: 88px;
+  display: flex; flex-direction: column;
+  padding: 10px;
+  border-radius: 14px;
+  background: linear-gradient(180deg, rgba(19,27,48,0.55), rgba(15,23,42,0.4));
+  border: 1px solid var(--border);
+}
+.tools-side__item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px 12px; border-radius: 10px;
+  background: transparent; border: 1px solid transparent;
+  color: var(--muted); font-weight: 500; font-size: 13.5px;
+  text-align: left; cursor: pointer;
+  transition: background .12s, color .12s, border-color .12s;
+}
+.tools-side__item:hover { color: var(--text); background: rgba(255,255,255,0.03); }
+.tools-side__item.is-active {
+  color: var(--cyan);
+  background: rgba(34,211,238,0.10);
+  border-color: rgba(34,211,238,0.30);
+}
+.tools-side__emoji { font-size: 16px; width: 22px; text-align: center; }
+.tools-side__label { flex: 1; }
+.tools-side__count {
+  font-family: 'JetBrains Mono'; font-size: 10.5px; color: var(--dim);
+  padding: 1px 7px; border-radius: 999px;
+  background: rgba(148,163,184,0.10); border: 1px solid var(--border);
+}
+.tools-side__item.is-active .tools-side__count { color: var(--cyan); border-color: rgba(34,211,238,0.30); background: rgba(34,211,238,0.05); }
+
+.tools-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 14px;
+}
+.tool-card {
+  --accent: #22d3ee;
+  display: flex; flex-direction: column; gap: 8px;
+  padding: 18px;
+  border-radius: 14px;
+  background: linear-gradient(180deg, rgba(19,27,48,0.6), rgba(15,23,42,0.45));
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--accent);
+  text-decoration: none; color: inherit;
+  transition: transform .18s, border-color .18s, box-shadow .18s, background .18s;
+}
+.tool-card:hover {
+  transform: translateY(-3px);
+  background: linear-gradient(180deg, rgba(19,27,48,0.85), rgba(15,23,42,0.65));
+  border-color: color-mix(in oklab, var(--accent) 50%, transparent);
+  box-shadow: 0 14px 36px -22px color-mix(in oklab, var(--accent) 80%, transparent);
+}
+.tool-card__chip {
+  align-self: flex-start;
+  font-family: 'JetBrains Mono'; font-size: 10.5px; font-weight: 700;
+  padding: 2px 8px; border-radius: 6px;
+  background: color-mix(in oklab, var(--accent) 15%, transparent);
+  color: var(--accent);
+  border: 1px solid color-mix(in oklab, var(--accent) 35%, transparent);
+}
+.tool-card h4 {
+  margin: 4px 0 0; font-family: 'Space Grotesk'; font-size: 16px;
+  display: flex; align-items: center; gap: 6px;
+}
+.tool-card__ext { color: var(--muted); font-size: 13px; }
+.tool-card p { margin: 0; color: var(--muted); font-size: 13px; line-height: 1.5; flex: 1; }
+.tool-card__tags { display: flex; gap: 5px; flex-wrap: wrap; margin-top: 4px; }
+.tool-card__tags .chip { font-size: 10.5px; padding: 2px 7px; }
+
+/* Mobile: sidebar → horizontal pill scroller above grid */
+@media (max-width: 880px) {
+  .tools-layout { grid-template-columns: 1fr; gap: 14px; }
+  .tools-side {
+    position: static;
+    flex-direction: row;
+    overflow-x: auto;
+    padding: 6px;
+    gap: 4px;
+    scrollbar-width: none;
+  }
+  .tools-side::-webkit-scrollbar { display: none; }
+  .tools-side__item {
+    flex: 0 0 auto;
+    padding: 8px 12px;
+  }
+}
+
+/* ===========================================================
+   Labs — semester accordion
+   =========================================================== */
+.lab-sems { display: flex; flex-direction: column; gap: 12px; }
+.lab-sem {
+  border-radius: 14px; overflow: hidden;
+  background: linear-gradient(180deg, rgba(19,27,48,0.5), rgba(15,23,42,0.35));
+  border: 1px solid var(--border);
+}
+.lab-sem__head {
+  display: flex; align-items: center; gap: 14px;
+  width: 100%; padding: 14px 16px;
+  background: transparent; border: none;
+  color: var(--text); text-align: left; cursor: pointer;
+  transition: background .12s;
+}
+.lab-sem__head:hover { background: rgba(255,255,255,0.03); }
+.lab-sem__head.is-open {
+  background: linear-gradient(135deg, rgba(34,211,238,0.06), rgba(167,139,250,0.04));
+  border-bottom: 1px solid var(--border);
+}
+.lab-sem__chev { font-size: 14px; color: var(--cyan); width: 16px; }
+.lab-sem__num {
+  width: 44px; height: 44px; border-radius: 12px;
+  display: grid; place-items: center;
+  background: var(--grad-1); color: #08101e;
+  font-family: 'Space Grotesk'; font-weight: 700; font-size: 16px;
+  flex-shrink: 0;
+}
+.lab-sem__title { flex: 1; min-width: 0; }
+.lab-sem__title h3 { margin: 0; font-family: 'Space Grotesk'; font-size: 16px; }
+.lab-sem__sub { font-size: 12.5px; color: var(--muted); margin-top: 2px; }
+.lab-sem__chips { display: flex; gap: 4px; flex-wrap: wrap; }
+.lab-sem__chips .chip { font-size: 10.5px; }
+.lab-sem .lab-grid { padding: 14px; }
+
+@media (max-width: 640px) {
+  .lab-sem__chips { display: none; }
+  .lab-sem__num { width: 38px; height: 38px; border-radius: 10px; font-size: 14px; }
+}
+
+/* ===========================================================
+   Code sandbox (editor + console)
+   =========================================================== */
+.sandbox {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 14px;
+  margin-top: 14px;
+}
+.sandbox__pane {
+  display: flex; flex-direction: column; gap: 10px;
+  padding: 12px;
+  border-radius: 14px;
+  background: linear-gradient(180deg, rgba(19,27,48,0.55), rgba(15,23,42,0.4));
+  border: 1px solid var(--border);
+}
+.sandbox__hdr {
+  display: flex; justify-content: space-between; align-items: baseline;
+  font-size: 12px; color: var(--muted);
+}
+.sandbox__hint { font-size: 11px; }
+.code-editor {
+  flex: 1; min-height: 360px;
+  font-family: 'JetBrains Mono', monospace; font-size: 13.5px;
+  background: #04080f; color: #e6edf6;
+  border: 1px solid var(--border); border-radius: 10px;
+  padding: 12px; outline: none; resize: vertical; line-height: 1.55;
+  tab-size: 2;
+}
+.code-editor:focus { border-color: rgba(34,211,238,0.5); box-shadow: 0 0 0 3px rgba(34,211,238,0.08); }
+.code-out {
+  flex: 1; min-height: 360px; max-height: 600px; overflow: auto;
+  margin: 0; padding: 14px;
+  background: #04080f;
+  border: 1px solid var(--border); border-radius: 10px;
+  font-family: 'JetBrains Mono', monospace; font-size: 12.5px;
+  white-space: pre-wrap; line-height: 1.55;
+  color: #e6edf6;
+}
+.code-out__line { padding: 2px 0; }
+.code-out__err {
+  color: var(--rose);
+  padding: 6px 10px; margin-top: 6px;
+  background: rgba(251,113,133,0.06);
+  border-left: 3px solid var(--rose);
+  border-radius: 4px;
+}
+.code-out__meta { color: var(--dim); font-size: 11.5px; margin-top: 8px; }
+.sandbox__actions { display: flex; gap: 8px; flex-wrap: wrap; }
+
+@media (max-width: 880px) {
+  .sandbox { grid-template-columns: 1fr; }
+}
+
+/* ===========================================================
    Labs hub + Lab detail
    =========================================================== */
 .lab-grid {
