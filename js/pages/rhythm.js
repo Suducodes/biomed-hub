@@ -1,5 +1,5 @@
-import { h, mount, icon } from '../ui.js?v=7cbd43e';
-import { awardXP, touchStreak, toast } from '../storage.js?v=7cbd43e';
+import { h, mount, icon } from '../ui.js?v=5f017ca';
+import { awardXP, touchStreak, toast } from '../storage.js?v=5f017ca';
 
 // Heart Rhythm Trainer — a quiz that draws a procedurally-generated ECG for
 // each round and asks the student to pick the right rhythm out of 4 options.

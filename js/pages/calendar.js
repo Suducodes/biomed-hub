@@ -1,5 +1,5 @@
-import { h, mount } from '../ui.js?v=7cbd43e';
-import { store, uid, toast, todayISO, dateISO } from '../storage.js?v=7cbd43e';
+import { h, mount } from '../ui.js?v=5f017ca';
+import { store, uid, toast, todayISO, dateISO } from '../storage.js?v=5f017ca';
 
 export function renderCalendar() {
   let cursor = new Date();

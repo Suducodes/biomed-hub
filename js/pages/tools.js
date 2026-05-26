@@ -1,5 +1,5 @@
-import { h, mount, icon } from '../ui.js';
-import { navigate } from '../router.js';
+import { h, mount, icon } from '../ui.js?v=5f017ca';
+import { navigate } from '../router.js?v=5f017ca';
 
 // Tools hub — one heading in the sidebar, this grid inside.
 // Each card is a "block" in the PhET sense: a preview, name, tags, click → run.

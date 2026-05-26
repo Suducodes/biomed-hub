@@ -1,7 +1,7 @@
-import { h, mount, icon } from '../ui.js?v=7cbd43e';
-import { YEARS, SEM_LABEL, subjectsOf, subjectById, CATEGORY_META } from '../data.js?v=7cbd43e';
-import { librarySubject, store, loadManifest, toggleUnitDone, isUnitDone, subjectProgress, toast } from '../storage.js?v=7cbd43e';
-import { navigate } from '../router.js?v=7cbd43e';
+import { h, mount, icon } from '../ui.js?v=5f017ca';
+import { YEARS, SEM_LABEL, subjectsOf, subjectById, CATEGORY_META } from '../data.js?v=5f017ca';
+import { librarySubject, store, loadManifest, toggleUnitDone, isUnitDone, subjectProgress, toast } from '../storage.js?v=5f017ca';
+import { navigate } from '../router.js?v=5f017ca';
 
 // ---------- /#/curriculum (year grid) ----------
 export function renderCurriculum() {
