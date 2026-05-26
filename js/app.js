@@ -1,28 +1,31 @@
 // Entry point — boots background, nav, palette, and registers routes.
 
-import { renderNav, renderStreakCard, setupPalette, setupMenu, setupKeybinds, startBackground } from './ui.js?v=7cbd43e';
-import { route, startRouter } from './router.js?v=7cbd43e';
-import { touchStreak, loadManifest } from './storage.js?v=7cbd43e';
+import { renderNav, renderStreakCard, setupPalette, setupMenu, setupKeybinds, startBackground } from './ui.js';
+import { route, startRouter } from './router.js';
+import { touchStreak, loadManifest } from './storage.js';
 
-import { renderDashboard } from './pages/dashboard.js?v=7cbd43e';
-import { renderCurriculum, renderYear, renderSemester, renderSubject } from './pages/curriculum.js?v=7cbd43e';
-import { renderNotes, renderNoteEditor, renderNoteView } from './pages/notes.js?v=7cbd43e';
-import { renderPapers } from './pages/papers.js?v=7cbd43e';
-import { renderFlashcards } from './pages/flashcards.js?v=7cbd43e';
-import { renderPomodoro } from './pages/pomodoro.js?v=7cbd43e';
-import { renderECG, stopECG } from './pages/ecg.js?v=7cbd43e';
-import { renderRhythm, stopRhythm } from './pages/rhythm.js?v=7cbd43e';
-import { renderWhiteboard } from './pages/whiteboard.js?v=7cbd43e';
-import { renderAbout } from './pages/about.js?v=7cbd43e';
-import { renderCalculators } from './pages/calculators.js?v=7cbd43e';
-import { renderMindmap } from './pages/mindmap.js?v=7cbd43e';
-import { renderGlossary } from './pages/glossary.js?v=7cbd43e';
-import { renderForum, renderThread } from './pages/forum.js?v=7cbd43e';
-import { renderCalendar } from './pages/calendar.js?v=7cbd43e';
-import { renderBuddy } from './pages/buddy.js?v=7cbd43e';
-import { renderBookmarks } from './pages/bookmarks.js?v=7cbd43e';
-import { renderStats } from './pages/stats.js?v=7cbd43e';
-import { renderAdmin } from './pages/admin.js?v=7cbd43e';
+import { renderDashboard } from './pages/dashboard.js';
+import { renderCurriculum, renderYear, renderSemester, renderSubject } from './pages/curriculum.js';
+import { renderNotes, renderNoteEditor, renderNoteView } from './pages/notes.js';
+import { renderPapers } from './pages/papers.js';
+import { renderFlashcards } from './pages/flashcards.js';
+import { renderPomodoro } from './pages/pomodoro.js';
+import { renderECG, stopECG } from './pages/ecg.js';
+import { renderRhythm, stopRhythm } from './pages/rhythm.js';
+import { renderWhiteboard } from './pages/whiteboard.js';
+import { renderAbout } from './pages/about.js';
+import { renderCalculators } from './pages/calculators.js';
+import { renderMindmap } from './pages/mindmap.js';
+import { renderGlossary } from './pages/glossary.js';
+import { renderForum, renderThread } from './pages/forum.js';
+import { renderCalendar } from './pages/calendar.js';
+import { renderBuddy } from './pages/buddy.js';
+import { renderBookmarks } from './pages/bookmarks.js';
+import { renderStats } from './pages/stats.js';
+import { renderAdmin } from './pages/admin.js';
+import { renderTools } from './pages/tools.js';
+import { renderSim, stopSim } from './pages/sim.js';
+import { renderLabs, renderLab } from './pages/labs.js';
 
 async function boot() {
   startBackground();
@@ -32,12 +35,12 @@ async function boot() {
   setupMenu();
   setupKeybinds();
   touchStreak();
-  // Pre-fetch manifest so dashboard renders accurate counts on first paint.
   loadManifest();
 
   window.addEventListener('hashchange', () => {
     if (!location.hash.startsWith('#/ecg'))    stopECG();
     if (!location.hash.startsWith('#/rhythm')) stopRhythm();
+    if (!location.hash.startsWith('#/sim'))    stopSim();
   });
 
   // Routes
@@ -63,6 +66,11 @@ async function boot() {
   route('#/mindmap',                renderMindmap);
   route('#/glossary',               renderGlossary);
   route('#/about',                  renderAbout);
+  route('#/tools',                  renderTools);
+  route('#/sim/phet/:id',           ({ id }) => renderSim({ kind: 'phet', id }));
+  route('#/sim/:id',                ({ id }) => renderSim({ kind: 'builtin', id }));
+  route('#/labs',                   renderLabs);
+  route('#/lab/:id',                renderLab);
 
   route('#/forum',                  renderForum);
   route('#/forum/:id',              renderThread);
