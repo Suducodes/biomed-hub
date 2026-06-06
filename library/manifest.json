@@ -1,7 +1,42 @@
 {
   "version": 1,
-  "generatedAt": "2026-06-06T05:05:13.486Z",
+  "generatedAt": "2026-06-06T05:10:36.272Z",
   "subjects": {
+    "PE-I": {
+      "notes": [
+        {
+          "id": "PE-I-unit1-Unit-1.pdf",
+          "unit": 1,
+          "title": "Unit 1",
+          "file": "library/PE-I/notes/unit1-Unit-1.pdf"
+        },
+        {
+          "id": "PE-I-unit2-Unit-2.pdf",
+          "unit": 2,
+          "title": "Unit 2",
+          "file": "library/PE-I/notes/unit2-Unit-2.pdf"
+        },
+        {
+          "id": "PE-I-unit3-Unit-III.pdf",
+          "unit": 3,
+          "title": "Unit III",
+          "file": "library/PE-I/notes/unit3-Unit-III.pdf"
+        },
+        {
+          "id": "PE-I-unit4-Unit-IV.pdf",
+          "unit": 4,
+          "title": "Unit IV",
+          "file": "library/PE-I/notes/unit4-Unit-IV.pdf"
+        },
+        {
+          "id": "PE-I-unit5-Unit-V.pdf",
+          "unit": 5,
+          "title": "Unit V",
+          "file": "library/PE-I/notes/unit5-Unit-V.pdf"
+        }
+      ],
+      "papers": []
+    },
     "PE-III": {
       "notes": [
         {
