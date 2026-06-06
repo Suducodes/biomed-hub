@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-06-06T04:39:45.303Z",
+  "generatedAt": "2026-06-06T05:00:27.976Z",
   "subjects": {
     "PE-III": {
       "notes": [
@@ -79,6 +79,23 @@
           "unit": 5,
           "title": "RP2040 Pptx",
           "file": "library/U21BM501/notes/unit5-RP2040-pptx.pdf"
+        }
+      ],
+      "papers": []
+    },
+    "U21BM503": {
+      "notes": [
+        {
+          "id": "U21BM503-unit3-Unit-3.pdf",
+          "unit": 3,
+          "title": "Unit 3",
+          "file": "library/U21BM503/notes/unit3-Unit-3.pdf"
+        },
+        {
+          "id": "U21BM503-unit4-Unit-45.pdf",
+          "unit": 4,
+          "title": "Unit 45",
+          "file": "library/U21BM503/notes/unit4-Unit-45.pdf"
         }
       ],
       "papers": []
