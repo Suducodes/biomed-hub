@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-06-06T05:00:58.167Z",
+  "generatedAt": "2026-06-06T05:05:13.486Z",
   "subjects": {
     "PE-III": {
       "notes": [
@@ -90,6 +90,12 @@
           "unit": 1,
           "title": "Unit 1",
           "file": "library/U21BM503/notes/unit1-Unit-1.pdf"
+        },
+        {
+          "id": "U21BM503-unit2-Unit-2.pdf",
+          "unit": 2,
+          "title": "Unit 2",
+          "file": "library/U21BM503/notes/unit2-Unit-2.pdf"
         },
         {
           "id": "U21BM503-unit3-Unit-3.pdf",
