@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-05-25T10:01:02.875Z",
+  "generatedAt": "2026-06-06T04:13:03.845Z",
   "subjects": {
     "PE-III": {
       "notes": [
@@ -33,6 +33,41 @@
           "unit": 5,
           "title": "HAD",
           "file": "library/PE-III/unit 5 HAD.pdf"
+        }
+      ],
+      "papers": []
+    },
+    "U21BM601": {
+      "notes": [
+        {
+          "id": "U21BM601-unit1-Unit-1.pdf",
+          "unit": 1,
+          "title": "Unit 1",
+          "file": "library/U21BM601/notes/unit1-Unit-1.pdf"
+        },
+        {
+          "id": "U21BM601-unit2-Unit-2.pdf",
+          "unit": 2,
+          "title": "Unit 2",
+          "file": "library/U21BM601/notes/unit2-Unit-2.pdf"
+        },
+        {
+          "id": "U21BM601-unit3-Unit-3.pdf",
+          "unit": 3,
+          "title": "Unit 3",
+          "file": "library/U21BM601/notes/unit3-Unit-3.pdf"
+        },
+        {
+          "id": "U21BM601-unit4-Unit-4.pdf",
+          "unit": 4,
+          "title": "Unit 4",
+          "file": "library/U21BM601/notes/unit4-Unit-4.pdf"
+        },
+        {
+          "id": "U21BM601-unit5-Unit-5.pdf",
+          "unit": 5,
+          "title": "Unit 5",
+          "file": "library/U21BM601/notes/unit5-Unit-5.pdf"
         }
       ],
       "papers": []
