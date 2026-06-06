@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-06-06T04:22:41.579Z",
+  "generatedAt": "2026-06-06T04:35:34.076Z",
   "subjects": {
     "PE-III": {
       "notes": [
@@ -33,6 +33,41 @@
           "unit": 5,
           "title": "HAD",
           "file": "library/PE-III/unit 5 HAD.pdf"
+        }
+      ],
+      "papers": []
+    },
+    "U21BM501": {
+      "notes": [
+        {
+          "id": "U21BM501-unit1-RP2040-pptx.pdf",
+          "unit": 1,
+          "title": "RP2040 Pptx",
+          "file": "library/U21BM501/notes/unit1-RP2040-pptx.pdf"
+        },
+        {
+          "id": "U21BM501-unit2-RP2040-pptx.pdf",
+          "unit": 2,
+          "title": "RP2040 Pptx",
+          "file": "library/U21BM501/notes/unit2-RP2040-pptx.pdf"
+        },
+        {
+          "id": "U21BM501-unit3-RP2040-pptx.pdf",
+          "unit": 3,
+          "title": "RP2040 Pptx",
+          "file": "library/U21BM501/notes/unit3-RP2040-pptx.pdf"
+        },
+        {
+          "id": "U21BM501-unit4-RP2040-pptx.pdf",
+          "unit": 4,
+          "title": "RP2040 Pptx",
+          "file": "library/U21BM501/notes/unit4-RP2040-pptx.pdf"
+        },
+        {
+          "id": "U21BM501-unit5-RP2040-pptx.pdf",
+          "unit": 5,
+          "title": "RP2040 Pptx",
+          "file": "library/U21BM501/notes/unit5-RP2040-pptx.pdf"
         }
       ],
       "papers": []
